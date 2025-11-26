@@ -726,6 +726,8 @@
 
         let petState = null;
 
+        let offlineMode = false;
+
         let logIndex = 0; // For logging
 
         const AP_MINIMUM = 50;
@@ -1034,6 +1036,12 @@
         /** Retrieves the Firestore document reference for the pet's data. */
 
         const getPetDocRef = () => {
+
+            if (offlineMode) {
+
+                return null;
+
+            }
 
             if (!db || !userId) {
 
@@ -2301,13 +2309,33 @@
 
 
 
+        const enterOfflineMode = (reason) => {
+
+            if (offlineMode) return;
+
+            offlineMode = true;
+
+            petState = { ...INITIAL_PET_STATE, name: '@offline_demo' };
+
+            selectedPalIndex = PAL_ROSTER.findIndex(pal => pal.id === petState.palId);
+
+            renderPalCarousel();
+
+            renderUI();
+
+            hideLoading();
+
+            logMessage(`${reason} Running in offline demo mode. Progress will not be saved.`, 'warning');
+
+        };
+
+
+
         const initializeGame = async () => {
 
             if (!firebaseConfig) {
 
-                logMessage("Firebase config not found. Cannot proceed.", 'error');
-
-                hideLoading();
+                enterOfflineMode('Firebase config not found.');
 
                 return;
 
@@ -2345,9 +2373,7 @@
 
                 console.error("Authentication failed: ", error);
 
-                logMessage("Authentication failed. Check Firebase config.", 'error');
-
-                hideLoading();
+                enterOfflineMode('Authentication failed.');
 
                 return;
 
