@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-Pet Strategist Simulator</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+
+        /* Custom Styles for Sleek/High-Contrast Dark Mode */
+        .app-card {
+            background-color: #0d0d1a; /* Very deep dark color */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            border: 1px solid #1f2937; /* Subtle dark border */
+        }
+
+        .status-block {
+            background-color: #1a1a2e; /* Primary component color */
+            border-radius: 16px;
+            padding: 1.25rem;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2); /* Soft inner shadow for depth */
+        }
+        
+        /* Modern Pill Buttons */
+        .action-btn {
+            @apply rounded-xl font-bold py-3 text-white transition duration-200 shadow-md hover:shadow-lg active:scale-98 disabled:opacity-30 disabled:shadow-none;
+        }
+
+        /* Stat Pill styling: Higher contrast */
+        .stat-pill {
+            background-color: #1f2937; /* Darker stat background */
+            @apply flex items-center justify-between p-4 rounded-xl;
+            border: 1px solid #374151;
+        }
+
+        /* HP Bar track for better depth */
+        #hp-bar-track {
+            background-color: #111827;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+        }
+
+        /* High-contrast status line for AP/SP */
+        .currency-display {
+            background-color: #111827;
+            @apply flex justify-between text-xl font-extrabold p-4 rounded-xl mt-4 border border-gray-700;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-4 flex items-center justify-center">
+
+    <div id="app" class="w-full max-w-lg app-card rounded-3xl p-6 md:p-8">
+        <header class="text-center mb-6">
+            <h1 class="text-4xl font-extrabold text-blue-300 tracking-wider">X-Pet: Strategist</h1>
+            <p id="user-id-display" class="text-xs text-gray-600 mt-2"></p>
+        </header>
+
+        <!-- Pet Status Section -->
+        <div id="pet-status" class="status-block mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <span id="pet-emoji" class="text-7xl">🥚</span>
+                <div class="text-right">
+                    <h2 id="pet-name" class="text-3xl font-bold text-gray-50">New Hatchling</h2>
+                    <p id="pet-species" class="text-lg font-semibold text-blue-400">Egg</p>
+                </div>
+            </div>
+
+            <!-- Health Bar -->
+            <div class="mb-3">
+                <p class="text-sm font-semibold flex justify-between mb-2">
+                    <span>Health: <span id="pet-hp-value">100</span>/<span id="pet-max-hp">100</span></span>
+                    <span id="decay-status" class="text-xs font-normal text-red-400"></span>
+                </p>
+                <div id="hp-bar-track" class="w-full rounded-full h-4 overflow-hidden">
+                    <div id="hp-bar" class="bg-red-500 h-full rounded-full transition-all duration-500" style="width: 100%;"></div>
+                </div>
+            </div>
+
+            <!-- AP/SP -->
+            <div class="currency-display">
+                <span class="text-yellow-400">⚡ AP: <span id="pet-ap">0</span></span>
+                <span class="text-cyan-400">✨ SP: <span id="pet-sp">0</span></span>
+            </div>
+        </div>
+
+        <!-- Injury Status -->
+        <div id="injury-status" class="hidden status-block bg-red-800/30 border border-red-500/50 mb-6">
+            <p class="font-bold text-red-200 mb-2">🚨 INJURED! 🚨</p>
+            <p class="text-sm text-red-300">2x Health Decay. Disabled from Battles/Training.</p>
+            <button onclick="handleHeal()" id="heal-button" class="mt-3 w-full action-btn bg-red-700 hover:bg-red-600 shadow-red-900/50">
+                Heal Pet (200 AP)
+            </button>
+        </div>
+
+        <!-- Stats and Allocation -->
+        <div class="mb-6">
+            <h3 class="text-xl font-bold mb-3 text-blue-300">Stats (Allocate SP)</h3>
+            <div class="space-y-3">
+                <div data-stat="str" class="stat-pill">
+                    <span class="text-lg">💪 Strength: <span id="stat-str" class="font-extrabold text-white">1</span></span>
+                    <button onclick="allocateSP('str')" class="bg-blue-600 hover:bg-blue-700 text-white text-lg w-8 h-8 rounded-full transition duration-200">+</button>
+                </div>
+                <div data-stat="int" class="stat-pill">
+                    <span class="text-lg">🧠 Intelligence: <span id="stat-int" class="font-extrabold text-white">1</span></span>
+                    <button onclick="allocateSP('int')" class="bg-blue-600 hover:bg-blue-700 text-white text-lg w-8 h-8 rounded-full transition duration-200">+</button>
+                </div>
+                <div data-stat="end" class="stat-pill">
+                    <span class="text-lg">🛡️ Endurance: <span id="stat-end" class="font-extrabold text-white">1</span></span>
+                    <button onclick="allocateSP('end')" class="bg-blue-600 hover:bg-blue-700 text-white text-lg w-8 h-8 rounded-full transition duration-200">+</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 gap-4">
+            <button onclick="handleSyncActivity()" id="sync-button" class="action-btn bg-blue-600 hover:bg-blue-500">
+                Sync X Activity <span class="text-sm font-normal">(+AP)</span>
+            </button>
+            <button onclick="handleFeed()" id="feed-button" class="action-btn bg-green-600 hover:bg-green-500">
+                Feed (100 AP) <span class="text-sm font-normal">(+HP / Pause)</span>
+            </button>
+            <button onclick="handleTrain()" id="train-button" class="action-btn bg-yellow-600 hover:bg-yellow-500">
+                Train (150 AP) <span class="text-sm font-normal">(+SP / Risk)</span>
+            </button>
+            <button onclick="handleBattle()" id="battle-button" class="action-btn bg-red-600 hover:bg-red-500">
+                Battle (120 AP) <span class="text-sm font-normal">(Massive Gain / High Risk)</span>
+            </button>
+        </div>
+
+        <!-- Message Log (Sleek console) -->
+        <div id="message-log" class="mt-8 h-28 overflow-y-auto p-4 bg-gray-900/50 rounded-xl text-sm text-gray-400 space-y-1 border border-gray-700">
+            <p>Welcome, Strategist. Initializing simulation...</p>
+        </div>
+
+        <!-- Initialization / Loading -->
+        <div id="loading" class="fixed inset-0 bg-gray-900 bg-opacity-95 flex flex-col items-center justify-center z-50">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-t-blue-400 border-b-blue-700 mb-4"></div>
+            <p class="text-lg font-semibold text-blue-400">Authenticating and Syncing Pet Data...</p>
+        </div>
+        
+        <!-- Custom Modal for Pet Name (Now Connect X) -->
+        <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center z-50">
+            <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-80 border border-blue-500/20">
+                <h3 class="text-2xl font-bold mb-4 text-blue-400">Sync Your X Profile</h3>
+                <p class="text-sm text-gray-400 mb-3">Your pet's survival depends on your X activity!</p>
+                <input type="text" id="pet-name-input" placeholder="Enter your @X_handle" class="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white mb-4 focus:ring-blue-500 focus:border-blue-500">
+                <button onclick="connectXAccountAndHatch()" class="w-full action-btn bg-blue-600 hover:bg-blue-700">
+                    Connect & Hatch Pet
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase variables provided by Canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let db, auth, userId = null;
+        let petState = null;
+        let logIndex = 0; // For logging
+
+        // --- Core Pet Data & Rules ---
+        const INITIAL_PET_STATE = {
+            name: 'Hatchling',
+            species: 'Egg',
+            emoji: '🥚',
+            hp: 100,
+            maxHp: 100,
+            ap: 0, // Activity Points (Currency)
+            sp: 0, // Stat Points (Allocation)
+            stats: { str: 1, int: 1, end: 1 },
+            isInjured: false,
+            lastActivityTimestamp: Date.now(), // Last time *any* action was performed
+            decayPauseUntil: Date.now(),      // NEW: Time when the decay pause ends (updated ONLY by Feed)
+            lastDecayTimestamp: Date.now(),   // Last time decay was calculated and applied
+            evolved: false
+        };
+
+        const DECAY_HOURS = 24;
+        const FEED_PAUSE_HOURS = 6;
+        const DECAY_LOSS_BASE = 15;
+        const INJURY_CHANCE = 0.15; // 15%
+
+        // --- Utility Functions ---
+
+        /** Logs a message to the in-app message log. */
+        const logMessage = (text, type = 'info') => {
+            const logElement = document.getElementById('message-log');
+            const p = document.createElement('p');
+            logIndex++;
+            let color = 'text-gray-400';
+            if (type === 'success') color = 'text-green-300';
+            if (type === 'warning') color = 'text-yellow-300';
+            if (type === 'error') color = 'text-red-300';
+
+            p.className = `${color} text-sm`;
+            p.innerHTML = `<span class="text-gray-600 mr-1">${logIndex}.</span> ${text}`;
+
+            if (logElement.firstChild) {
+                logElement.insertBefore(p, logElement.firstChild);
+            } else {
+                logElement.appendChild(p);
+            }
+            // Keep the log scrolled to the top
+            logElement.scrollTop = 0;
+        };
+
+        /** Retrieves the Firestore document reference for the pet's data. */
+        const getPetDocRef = () => {
+            if (!db || !userId) {
+                logMessage("Firestore not initialized.", 'error');
+                return null;
+            }
+            // Private user data path: /artifacts/{appId}/users/{userId}/pet_game/pet_data
+            return doc(db, `artifacts/${appId}/users/${userId}/pet_game/pet_data`);
+        };
+
+        /** Updates the pet state in Firestore. */
+        const savePetState = async (updates = {}) => {
+            if (!petState) return;
+
+            // Apply local updates first
+            Object.assign(petState, updates);
+
+            // Ensure HP doesn't exceed Max HP
+            petState.hp = Math.min(petState.hp, petState.maxHp);
+            petState.hp = Math.max(0, petState.hp); // HP cannot be negative
+
+            const petRef = getPetDocRef();
+            if (petRef) {
+                try {
+                    await setDoc(petRef, petState, { merge: true });
+                } catch (e) {
+                    console.error("Error saving pet state: ", e);
+                    logMessage("Failed to save state to database.", 'error');
+                }
+            }
+        };
+
+        /** Renders the current pet state to the UI. */
+        const renderUI = () => {
+            if (!petState) return;
+
+            document.getElementById('pet-name').textContent = petState.name;
+            document.getElementById('pet-species').textContent = petState.species;
+            document.getElementById('pet-emoji').textContent = petState.emoji;
+            document.getElementById('pet-ap').textContent = petState.ap.toLocaleString();
+            document.getElementById('pet-sp').textContent = petState.sp;
+
+            // HP Bar
+            const hpValue = petState.hp;
+            const maxHp = petState.maxHp;
+            const hpPercent = maxHp > 0 ? (hpValue / maxHp) * 100 : 0;
+            document.getElementById('pet-hp-value').textContent = hpValue;
+            document.getElementById('pet-max-hp').textContent = maxHp;
+            document.getElementById('hp-bar').style.width = `${hpPercent}%`;
+            
+            // Dynamic HP Bar Color for better visual feedback
+            const hpBar = document.getElementById('hp-bar');
+            hpBar.classList.remove('bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500', 'bg-red-900');
+            if (hpPercent > 50) {
+                hpBar.classList.add('bg-green-500');
+            } else if (hpPercent > 20) {
+                hpBar.classList.add('bg-yellow-500');
+            } else if (hpPercent > 0) {
+                hpBar.classList.add('bg-red-500');
+            } else {
+                hpBar.classList.add('bg-red-900'); // Faded red for death
+            }
+
+            // Stats
+            document.getElementById('stat-str').textContent = petState.stats.str;
+            document.getElementById('stat-int').textContent = petState.stats.int;
+            document.getElementById('stat-end').textContent = petState.stats.end;
+
+            // Injury Status
+            const injuryStatus = document.getElementById('injury-status');
+            const decayStatus = document.getElementById('decay-status');
+            const actionButtons = document.querySelectorAll('.action-btn');
+
+            if (petState.isInjured) {
+                injuryStatus.classList.remove('hidden');
+                decayStatus.textContent = '(2x Decay Rate)';
+                // Disable high-stakes actions when injured
+                document.getElementById('train-button').disabled = true;
+                document.getElementById('battle-button').disabled = true;
+            } else {
+                injuryStatus.classList.add('hidden');
+                decayStatus.textContent = '';
+                document.getElementById('train-button').disabled = false;
+                document.getElementById('battle-button').disabled = false;
+            }
+
+            // Button visibility based on AP
+            document.getElementById('feed-button').disabled = petState.ap < 100;
+            document.getElementById('train-button').disabled = petState.ap < 150 || petState.isInjured;
+            document.getElementById('battle-button').disabled = petState.ap < 120 || petState.isInjured;
+            document.getElementById('heal-button').disabled = petState.ap < 200;
+
+            // Stat allocation buttons
+            const allocateButtons = document.querySelectorAll('.bg-blue-600');
+            allocateButtons.forEach(btn => btn.disabled = petState.sp < 1);
+            
+            // Decay Status Display Logic (shows time remaining until next decay or pause end)
+            const currentTime = Date.now();
+            const decayTimeMs = DECAY_HOURS * 60 * 60 * 1000;
+            
+            // 1. Check if Decay is currently paused by a recent Feed action
+            if (currentTime < petState.decayPauseUntil) {
+                const timeUntilPauseEnds = petState.decayPauseUntil - currentTime;
+                const h = Math.floor(timeUntilPauseEnds / (1000 * 60 * 60));
+                const m = Math.floor((timeUntilPauseEnds % (1000 * 60 * 60)) / (1000 * 60));
+                decayStatus.textContent = `(Decay paused for ${h}h ${m}m)`;
+            } else {
+                // 2. Pause ended, show time until the next 24-hour cycle is due
+                const timeElapsedSinceLastDecay = currentTime - petState.lastDecayTimestamp;
+                const nextDecayInMs = decayTimeMs - (timeElapsedSinceLastDecay % decayTimeMs);
+
+                const h = Math.floor(nextDecayInMs / (1000 * 60 * 60));
+                const m = Math.floor((nextDecayInMs % (1000 * 60 * 60)) / (1000 * 60));
+                decayStatus.textContent = `(Next decay in ${h}h ${m}m)`;
+            }
+
+            // Check if pet is dead
+            if (petState.hp <= 0) {
+                logMessage(`[GAME OVER] ${petState.name} ran out of HP and is gone. Data will be reset on next action.`, 'error');
+                actionButtons.forEach(btn => btn.disabled = true);
+            }
+        };
+
+        /** Checks for and applies health decay based on timestamps. */
+        const checkAndApplyDecay = async () => {
+            const currentTime = Date.now();
+            const decayTimeMs = DECAY_HOURS * 60 * 60 * 1000;
+            
+            let lastCheckTime = petState.lastDecayTimestamp;
+            let decayEvents = 0;
+            
+            // If the decay is still paused, or if the pet hasn't passed the pause time yet,
+            // the check for elapsed 24-hour cycles must start from the moment the pause ends.
+            let checkStartTime = Math.max(lastCheckTime, petState.decayPauseUntil);
+
+            // Calculate how many 24-hour cycles have fully elapsed since the effective check start time
+            const timeSinceCheckStart = currentTime - checkStartTime;
+            if (timeSinceCheckStart > 0) {
+                decayEvents = Math.floor(timeSinceCheckStart / decayTimeMs);
+            }
+
+            if (decayEvents > 0) {
+                // Calculate loss reduced by Endurance (1 End = 5% reduction, max 80% at End 16)
+                const endStat = petState.stats.end;
+                const reductionPercent = Math.min(0.05 * endStat, 0.8);
+                const lossPerCycle = Math.round(DECAY_LOSS_BASE * (1 - reductionPercent));
+
+                // Total Loss
+                let totalLoss = lossPerCycle * decayEvents;
+                if (petState.isInjured) {
+                    totalLoss *= 2; // 2x decay rate when injured
+                }
+                
+                const newHP = petState.hp - totalLoss;
+
+                // Calculate the exact timestamp when the last applied decay cycle ended
+                const newLastDecayTimestamp = checkStartTime + (decayEvents * decayTimeMs);
+
+                await savePetState({
+                    hp: newHP,
+                    lastDecayTimestamp: newLastDecayTimestamp, 
+                });
+
+                logMessage(`Health Decay Event: Lost ${totalLoss} HP over ${decayEvents} cycle(s). Endurance (${endStat}) reduced loss by ${Math.round(reductionPercent * 100)}%.`, 'warning');
+                renderUI(); // Render immediately after decay
+            }
+        };
+
+
+        /** Checks if the pet is ready for evolution based on stats. */
+        const checkEvolution = async () => {
+            if (petState.evolved) return;
+
+            const AP_THRESHOLD = 5000;
+            if (petState.ap < AP_THRESHOLD) return;
+
+            const stats = petState.stats;
+            const maxStatValue = Math.max(stats.str, stats.int, stats.end);
+            
+            // Check for ties or insufficient dominance
+            const dominantStats = Object.keys(stats).filter(key => stats[key] === maxStatValue);
+            if (dominantStats.length !== 1 || maxStatValue < 15) return; // Requires a clear winner and high enough stat
+
+            let newSpecies = 'Adult';
+            let newEmoji = '👾';
+
+            switch (dominantStats[0]) {
+                case 'str':
+                    newSpecies = 'Adult-Strength';
+                    newEmoji = '🦍';
+                    logMessage(`Evolution Success! Evolved into a fierce ${newSpecies}!`, 'success');
+                    break;
+                case 'int':
+                    newSpecies = 'Adult-Intelligence';
+                    newEmoji = '🦉';
+                    logMessage(`Evolution Success! Evolved into a cunning ${newSpecies}!`, 'success');
+                    break;
+                case 'end':
+                    newSpecies = 'Adult-Endurance';
+                    newEmoji = '🐢';
+                    logMessage(`Evolution Success! Evolved into a resilient ${newSpecies}!`, 'success');
+                    break;
+            }
+
+            // Increase Max HP on evolution
+            const newMaxHP = petState.maxHp + 50;
+            
+            await savePetState({
+                species: newSpecies,
+                emoji: newEmoji,
+                maxHp: newMaxHP,
+                hp: newMaxHP, // Full heal on evolution
+                evolved: true
+            });
+        };
+
+        // --- Action Handlers (MUST be global for onclick in HTML) ---
+
+        window.handleSyncActivity = async () => {
+            if (petState.hp <= 0) return logMessage('Pet is deceased. Cannot perform actions.', 'error');
+            
+            // Base AP gain + bonus from Intelligence
+            const baseAP = 100;
+            const intBonus = petState.stats.int * 5;
+            const apGained = baseAP + intBonus;
+
+            await savePetState({
+                ap: petState.ap + apGained,
+                lastActivityTimestamp: Date.now()
+            });
+
+            logMessage(`Synced X Activity! Gained ${apGained} AP.`, 'success');
+            checkEvolution();
+        };
+
+        window.handleFeed = async () => {
+            if (petState.hp <= 0) return logMessage('Pet is deceased. Cannot perform actions.', 'error');
+            if (petState.ap < 100) return logMessage('Not enough AP to Feed (requires 100 AP).', 'warning');
+
+            const hpRecovered = Math.round(petState.maxHp * 0.25); // Recover 25% of Max HP
+            const newHP = petState.hp + hpRecovered;
+            
+            // Only Feed updates the decay pause timer
+            const newDecayPauseUntil = Date.now() + (FEED_PAUSE_HOURS * 60 * 60 * 1000);
+
+            await savePetState({
+                ap: petState.ap - 100,
+                hp: newHP,
+                decayPauseUntil: newDecayPauseUntil,
+                lastActivityTimestamp: Date.now()
+            });
+
+            logMessage(`Fed ${petState.name}! Recovered ${hpRecovered} HP. Decay paused until ${new Date(newDecayPauseUntil).toLocaleTimeString()}.`, 'success');
+        };
+
+        window.handleHeal = async () => {
+            if (petState.hp <= 0) return logMessage('Pet is deceased. Cannot perform actions.', 'error');
+            if (!petState.isInjured) return logMessage('Pet is not injured.', 'info');
+            if (petState.ap < 200) return logMessage('Not enough AP to Heal (requires 200 AP).', 'warning');
+
+            await savePetState({
+                ap: petState.ap - 200,
+                isInjured: false,
+                lastActivityTimestamp: Date.now()
+            });
+
+            logMessage(`Healed ${petState.name}! Injury removed, decay rate is normal again.`, 'success');
+        };
+
+        window.handleTrain = async () => {
+            if (petState.hp <= 0) return logMessage('Pet is deceased. Cannot perform actions.', 'error');
+            if (petState.ap < 150) return logMessage('Not enough AP to Train (requires 150 AP).', 'warning');
+            if (petState.isInjured) return logMessage('Cannot Train while Injured.', 'warning');
+
+            await savePetState({ ap: petState.ap - 150 });
+
+            // Training success logic: Int increases Critical Success, lowers Failure risk
+            const intStat = petState.stats.int;
+            const roll = Math.random() * 100;
+
+            let resultMessage = '';
+            let updates = {};
+
+            if (roll < (5 + intStat * 2)) { // Critical Success chance (e.g., 5% + 2% per Int)
+                const spGained = 3;
+                updates.sp = petState.sp + spGained;
+                resultMessage = `CRITICAL SUCCESS! Gained ${spGained} SP!`;
+                logMessage(resultMessage, 'success');
+            } else if (roll < (15 + intStat * 5)) { // Normal Success
+                const spGained = 1;
+                updates.sp = petState.sp + spGained;
+                resultMessage = `Training Success. Gained ${spGained} SP.`;
+                logMessage(resultMessage, 'info');
+            } else { // Failure: -10 HP, -1 SP loss
+                const newHP = petState.hp - 10;
+                updates.hp = newHP;
+                updates.sp = Math.max(0, petState.sp - 1);
+                resultMessage = `Training Failure. Lost 10 HP and 1 SP!`;
+                logMessage(resultMessage, 'warning');
+
+                // Check for injury on failure (15% chance)
+                if (Math.random() < INJURY_CHANCE) {
+                    updates.isInjured = true;
+                    logMessage(`${petState.name} suffered an INJURY during training!`, 'error');
+                }
+            }
+
+            await savePetState({ ...updates, lastActivityTimestamp: Date.now() });
+            checkEvolution();
+        };
+
+        window.handleBattle = async () => {
+            if (petState.hp <= 0) return logMessage('Pet is deceased. Cannot perform actions.', 'error');
+            if (petState.ap < 120) return logMessage('Not enough AP to Battle (requires 120 AP).', 'warning');
+            if (petState.isInjured) return logMessage('Cannot Battle while Injured.', 'warning');
+
+            await savePetState({ ap: petState.ap - 120 });
+
+            // Dynamic Rival Scaling: Rival strength is 80% of Pet's dominant stat + minor random offset
+            const petStr = petState.stats.str;
+            const petTotalStats = petStr + petState.stats.int + petState.stats.end;
+            const rivalStrength = Math.round(petTotalStats * 0.4 + Math.random() * 5);
+
+            // Win chance based on Strength difference
+            const winProbability = Math.min(0.9, Math.max(0.1, petStr / rivalStrength / 2));
+            const didWin = Math.random() < winProbability;
+
+            let resultMessage = '';
+            let updates = {};
+
+            if (didWin) {
+                const apGain = 500;
+                const spGain = 2;
+                updates.ap = petState.ap + apGain;
+                updates.sp = petState.sp + spGain;
+                resultMessage = `BATTLE VICTORY! Strength (${petStr}) overcame Rival (${rivalStrength}). Gained ${apGain} AP and ${spGain} SP!`;
+                logMessage(resultMessage, 'success');
+            } else {
+                const hpLoss = 30;
+                updates.hp = petState.hp - hpLoss;
+                resultMessage = `BATTLE DEFEAT. Lost 30 HP to the Rival (${rivalStrength}).`;
+                logMessage(resultMessage, 'warning');
+
+                // Check for injury on loss (15% chance)
+                if (Math.random() < INJURY_CHANCE) {
+                    updates.isInjured = true;
+                    logMessage(`${petState.name} suffered an INJURY during the battle!`, 'error');
+                }
+            }
+
+            await savePetState({ ...updates, lastActivityTimestamp: Date.now() });
+            checkEvolution();
+        };
+
+        window.allocateSP = async (statKey) => {
+            if (petState.sp < 1) return logMessage('No Stat Points (SP) available for allocation.', 'warning');
+
+            const newStats = { ...petState.stats, [statKey]: petState.stats[statKey] + 1 };
+            
+            await savePetState({
+                sp: petState.sp - 1,
+                stats: newStats,
+                lastActivityTimestamp: Date.now()
+            });
+
+            logMessage(`Allocated 1 SP to ${statKey.toUpperCase()}.`, 'info');
+            checkEvolution();
+        };
+
+        window.connectXAccountAndHatch = async () => {
+            const nameInput = document.getElementById('pet-name-input');
+            let rawName = nameInput.value.trim();
+            let newName = rawName;
+
+            // 1. Basic Formatting: Ensure it starts with '@'
+            if (!newName.startsWith('@')) {
+                newName = '@' + newName;
+            }
+
+            const handleBase = newName.substring(1); // Get the part after '@'
+
+            // 2. Comprehensive Validation:
+            // X handles must be 1 to 15 characters long (after @)
+            // They can only contain alphanumeric characters and underscores.
+            const handleRegex = /^[a-zA-Z0-9_]{1,15}$/;
+
+            if (handleBase.length === 0) {
+                logMessage('X handle cannot be empty.', 'error');
+                return;
+            }
+            if (handleBase.length > 15) {
+                logMessage('X handle is too long (max 15 characters after @).', 'error');
+                return;
+            }
+            if (!handleRegex.test(handleBase)) {
+                 logMessage('X handle contains invalid characters. Use only letters, numbers, and underscores.', 'error');
+                 return;
+            }
+
+            // --- Success Path ---
+            
+            // Save the validated and formatted name
+            await savePetState({ name: newName });
+            
+            // Clear input field and hide modal
+            nameInput.value = '';
+            document.getElementById('modal-backdrop').classList.add('hidden');
+            document.getElementById('modal-backdrop').classList.remove('flex');
+            
+            renderUI();
+            
+            logMessage(`X Account ${newName} connected. Pet hatched! Starting simulation!`, 'success');
+        };
+
+        // --- Firebase Initialization and Game Loop ---
+
+        const initializeGame = async () => {
+            if (!firebaseConfig) {
+                logMessage("Firebase config not found. Cannot proceed.", 'error');
+                return;
+            }
+            
+            // Fix: setLogLevel is imported from firebase-app.js
+            setLogLevel('debug'); // Enable Firebase logging
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            // 1. Authenticate User
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Authentication failed: ", error);
+                logMessage("Authentication failed. Check Firebase config.", 'error');
+                return;
+            }
+
+            // 2. Wait for Auth State Change to get userId
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    document.getElementById('user-id-display').textContent = `User ID: ${userId}`;
+                    
+                    // 3. Setup Real-time Listener (onSnapshot)
+                    const petRef = getPetDocRef();
+                    onSnapshot(petRef, async (docSnap) => {
+                        const loadingScreen = document.getElementById('loading');
+                        loadingScreen.classList.add('hidden');
+                        
+                        // New User / First Load
+                        if (!docSnap.exists() || docSnap.data().hp === 0) {
+                            if (docSnap.data() && docSnap.data().hp === 0) {
+                                logMessage('Your previous pet perished. Starting a new Egg.', 'info');
+                            }
+                            // Reset state for new game
+                            petState = { ...INITIAL_PET_STATE };
+                            await savePetState(); // Save initial state
+                            document.getElementById('modal-backdrop').classList.add('flex');
+                            document.getElementById('modal-backdrop').classList.remove('hidden');
+                            renderUI();
+                            return;
+                        }
+
+                        // Existing Data Loaded
+                        // Ensure compatibility with older data missing 'decayPauseUntil'
+                        const loadedData = docSnap.data();
+                        if (typeof loadedData.decayPauseUntil === 'undefined') {
+                             loadedData.decayPauseUntil = loadedData.lastActivityTimestamp || Date.now();
+                        }
+                        petState = loadedData;
+
+                        // 4. Apply Decay & Update UI
+                        await checkAndApplyDecay();
+                        renderUI();
+                        
+                        // Check for evolution immediately after state update
+                        checkEvolution();
+                    }, (error) => {
+                        console.error("Snapshot listener failed: ", error);
+                        logMessage("Failed to listen for data updates.", 'error');
+                    });
+                } else {
+                    console.log("No user signed in.");
+                }
+            });
+        };
+
+        // Start the application
+        window.onload = initializeGame;
+    </script>
+</body>
+</html>
