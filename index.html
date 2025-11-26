@@ -1909,22 +1909,6 @@
 
 
 
-        const ensurePetLoaded = () => {
-
-            if (!petState) {
-
-                logMessage('Pet data is still loading. Please wait a moment and try again.', 'warning');
-
-                return false;
-
-            }
-
-            return true;
-
-        };
-
-
-
         const parseActivityString = (activityString = '') => {
 
             const metrics = { likes: 0, comments: 0, reposts: 0, quotes: 0, impressions: 0 };
