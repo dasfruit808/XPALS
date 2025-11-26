@@ -663,12 +663,18 @@
 
         // --- Firebase Initialization and Game Loop ---
 
+        const hideLoading = () => {
+            const loadingScreen = document.getElementById('loading');
+            loadingScreen.classList.add('hidden');
+        };
+
         const initializeGame = async () => {
             if (!firebaseConfig) {
                 logMessage("Firebase config not found. Cannot proceed.", 'error');
+                hideLoading();
                 return;
             }
-            
+
             // Fix: setLogLevel is imported from firebase-app.js
             setLogLevel('debug'); // Enable Firebase logging
             const app = initializeApp(firebaseConfig);
@@ -685,6 +691,7 @@
             } catch (error) {
                 console.error("Authentication failed: ", error);
                 logMessage("Authentication failed. Check Firebase config.", 'error');
+                hideLoading();
                 return;
             }
 
@@ -697,8 +704,7 @@
                     // 3. Setup Real-time Listener (onSnapshot)
                     const petRef = getPetDocRef();
                     onSnapshot(petRef, async (docSnap) => {
-                        const loadingScreen = document.getElementById('loading');
-                        loadingScreen.classList.add('hidden');
+                        hideLoading();
                         
                         // New User / First Load
                         if (!docSnap.exists() || docSnap.data().hp === 0) {
@@ -731,6 +737,7 @@
                     }, (error) => {
                         console.error("Snapshot listener failed: ", error);
                         logMessage("Failed to listen for data updates.", 'error');
+                        hideLoading();
                     });
                 } else {
                     console.log("No user signed in.");
