@@ -83,10 +83,11 @@
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen p-4 flex items-center justify-center">
 
-    <div id="app" class="w-full max-w-lg app-card rounded-3xl p-6 md:p-8">
+    <div id="app" class="w-full max-w-3xl app-card rounded-3xl p-6 md:p-8">
         <header class="text-center mb-6">
             <h1 class="text-4xl font-extrabold text-blue-300 tracking-wider">X-Pet: Strategist</h1>
-            <p id="user-id-display" class="text-xs text-gray-600 mt-2"></p>
+            <p class="text-sm text-gray-400 mt-2">Built for seamless PC + mobile play. Manage your Pal anywhere.</p>
+            <p id="user-id-display" class="text-xs text-gray-600 mt-1"></p>
         </header>
 
         <!-- Pet Status Section -->
@@ -146,19 +147,57 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="grid grid-cols-2 gap-4">
-            <button onclick="handleSyncActivity()" id="sync-button" class="action-btn bg-blue-600 hover:bg-blue-500">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button onclick="handleSyncActivity()" id="sync-button" class="action-btn bg-blue-600 hover:bg-blue-500 w-full">
                 Sync X Activity <span class="text-sm font-normal">(+AP)</span>
             </button>
-            <button onclick="handleFeed()" id="feed-button" class="action-btn bg-green-600 hover:bg-green-500">
+            <button onclick="handleFeed()" id="feed-button" class="action-btn bg-green-600 hover:bg-green-500 w-full">
                 Feed (100 AP) <span class="text-sm font-normal">(+HP / Pause)</span>
             </button>
-            <button onclick="handleTrain()" id="train-button" class="action-btn bg-yellow-600 hover:bg-yellow-500">
+            <button onclick="handleTrain()" id="train-button" class="action-btn bg-yellow-600 hover:bg-yellow-500 w-full">
                 Train (150 AP) <span class="text-sm font-normal">(+SP / Risk)</span>
             </button>
-            <button onclick="handleBattle()" id="battle-button" class="action-btn bg-red-600 hover:bg-red-500">
+            <button onclick="handleBattle()" id="battle-button" class="action-btn bg-red-600 hover:bg-red-500 w-full">
                 Battle (120 AP) <span class="text-sm font-normal">(Massive Gain / High Risk)</span>
             </button>
+        </div>
+
+        <!-- X Activity Mixer -->
+        <div class="mt-6 status-block border border-blue-900/40">
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <div>
+                    <h3 class="text-xl font-bold text-blue-300">Engagement Sync</h3>
+                    <p class="text-sm text-gray-400">Enter likes, comments, reposts, quote posts, and impressions from X. Works on desktop or mobile.</p>
+                </div>
+                <div class="text-right text-sm text-gray-400">
+                    <p>AP Preview: <span id="ap-preview" class="text-blue-300 font-extrabold">50</span></p>
+                    <p class="text-xs text-gray-500">(Includes Intelligence bonus)</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <label class="block text-sm text-gray-300">Likes
+                    <input id="likes-input" type="number" min="0" step="1" value="0" oninput="updateAPPreview()" class="mt-1 w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500">
+                </label>
+                <label class="block text-sm text-gray-300">Comments
+                    <input id="comments-input" type="number" min="0" step="1" value="0" oninput="updateAPPreview()" class="mt-1 w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500">
+                </label>
+                <label class="block text-sm text-gray-300">Reposts
+                    <input id="reposts-input" type="number" min="0" step="1" value="0" oninput="updateAPPreview()" class="mt-1 w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500">
+                </label>
+                <label class="block text-sm text-gray-300">Quote Posts
+                    <input id="quotes-input" type="number" min="0" step="1" value="0" oninput="updateAPPreview()" class="mt-1 w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500">
+                </label>
+                <label class="block text-sm text-gray-300">Impressions
+                    <input id="impressions-input" type="number" min="0" step="50" value="0" oninput="updateAPPreview()" class="mt-1 w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500">
+                </label>
+            </div>
+
+            <div class="mt-4 text-sm text-gray-400 space-y-1">
+                <p>Weighted gains: Likes (x8), Comments (x12), Reposts (x18), Quote Posts (x22), Impressions (x5 per 250).</p>
+                <p>Boosted by Intelligence. Minimum 50 AP per sync to keep cadence smooth on the go.</p>
+                <p id="last-sync-details" class="text-gray-300"></p>
+            </div>
         </div>
 
         <!-- Message Log (Sleek console) -->
@@ -200,6 +239,7 @@
         let db, auth, userId = null;
         let petState = null;
         let logIndex = 0; // For logging
+        const AP_MINIMUM = 50;
 
         // --- Core Pet Data & Rules ---
         const INITIAL_PET_STATE = {
@@ -215,7 +255,15 @@
             lastActivityTimestamp: Date.now(), // Last time *any* action was performed
             decayPauseUntil: Date.now(),      // NEW: Time when the decay pause ends (updated ONLY by Feed)
             lastDecayTimestamp: Date.now(),   // Last time decay was calculated and applied
-            evolved: false
+            evolved: false,
+            lastSyncBreakdown: {
+                likes: 0,
+                comments: 0,
+                reposts: 0,
+                quotes: 0,
+                impressions: 0,
+                apGained: 0
+            }
         };
 
         const DECAY_HOURS = 24;
@@ -315,6 +363,15 @@
             document.getElementById('stat-int').textContent = petState.stats.int;
             document.getElementById('stat-end').textContent = petState.stats.end;
 
+            // Last sync breakdown
+            const lastSyncDetails = document.getElementById('last-sync-details');
+            const breakdown = petState.lastSyncBreakdown;
+            if (breakdown) {
+                lastSyncDetails.textContent = `Last sync → +${breakdown.apGained || 0} AP from ${breakdown.likes || 0} likes, ${breakdown.comments || 0} comments, ${breakdown.reposts || 0} reposts, ${breakdown.quotes || 0} quotes, ${breakdown.impressions || 0} impressions.`;
+            } else {
+                lastSyncDetails.textContent = 'Sync your first X session to see the breakdown here.';
+            }
+
             // Injury Status
             const injuryStatus = document.getElementById('injury-status');
             const decayStatus = document.getElementById('decay-status');
@@ -368,6 +425,40 @@
                 logMessage(`[GAME OVER] ${petState.name} ran out of HP and is gone. Data will be reset on next action.`, 'error');
                 actionButtons.forEach(btn => btn.disabled = true);
             }
+
+            updateAPPreview();
+        };
+
+        /**
+         * Calculates AP gained from X engagement metrics and Intelligence bonus.
+         * Ensures a minimum base AP so users on mobile/desktop get predictable value.
+         */
+        const calculateAPFromMetrics = (metrics) => {
+            const likesAP = metrics.likes * 8;
+            const commentsAP = metrics.comments * 12;
+            const repostsAP = metrics.reposts * 18;
+            const quotesAP = metrics.quotes * 22;
+            const impressionAP = Math.floor(metrics.impressions / 250) * 5;
+            const engagementAP = likesAP + commentsAP + repostsAP + quotesAP + impressionAP;
+
+            const intBonus = petState ? petState.stats.int * 5 : 0;
+            const total = engagementAP + intBonus;
+            return Math.max(AP_MINIMUM + intBonus, total);
+        };
+
+        const readMetricsFromInputs = () => ({
+            likes: Math.max(0, Number(document.getElementById('likes-input').value) || 0),
+            comments: Math.max(0, Number(document.getElementById('comments-input').value) || 0),
+            reposts: Math.max(0, Number(document.getElementById('reposts-input').value) || 0),
+            quotes: Math.max(0, Number(document.getElementById('quotes-input').value) || 0),
+            impressions: Math.max(0, Number(document.getElementById('impressions-input').value) || 0),
+        });
+
+        window.updateAPPreview = () => {
+            if (!petState) return;
+            const metrics = readMetricsFromInputs();
+            const preview = calculateAPFromMetrics(metrics);
+            document.getElementById('ap-preview').textContent = preview.toLocaleString();
         };
 
         /** Checks for and applies health decay based on timestamps. */
@@ -467,18 +558,25 @@
 
         window.handleSyncActivity = async () => {
             if (petState.hp <= 0) return logMessage('Pet is deceased. Cannot perform actions.', 'error');
-            
-            // Base AP gain + bonus from Intelligence
-            const baseAP = 100;
-            const intBonus = petState.stats.int * 5;
-            const apGained = baseAP + intBonus;
+
+            const metrics = readMetricsFromInputs();
+
+            const apGained = calculateAPFromMetrics(metrics);
 
             await savePetState({
                 ap: petState.ap + apGained,
-                lastActivityTimestamp: Date.now()
+                lastActivityTimestamp: Date.now(),
+                lastSyncBreakdown: { ...metrics, apGained }
             });
 
-            logMessage(`Synced X Activity! Gained ${apGained} AP.`, 'success');
+            // Reset inputs for the next session
+            ['likes-input', 'comments-input', 'reposts-input', 'quotes-input', 'impressions-input'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) input.value = 0;
+            });
+            updateAPPreview();
+
+            logMessage(`Synced X Activity! Gained ${apGained} AP from your latest X engagement.`, 'success');
             checkEvolution();
         };
 
@@ -725,6 +823,9 @@
                         const loadedData = docSnap.data();
                         if (typeof loadedData.decayPauseUntil === 'undefined') {
                              loadedData.decayPauseUntil = loadedData.lastActivityTimestamp || Date.now();
+                        }
+                        if (typeof loadedData.lastSyncBreakdown === 'undefined') {
+                            loadedData.lastSyncBreakdown = { likes: 0, comments: 0, reposts: 0, quotes: 0, impressions: 0, apGained: 0 };
                         }
                         petState = loadedData;
 
