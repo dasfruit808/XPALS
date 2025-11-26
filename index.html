@@ -163,41 +163,63 @@
 
 
         .slider {
-
             appearance: none;
-
             width: 100%;
-
             height: 10px;
-
             border-radius: 9999px;
-
-            background: linear-gradient(90deg, #22d3ee, #60a5fa, #a855f7);
-
+            background: linear-gradient(90deg, #22d3ee 0%, #60a5fa var(--slider-fill, 33%), #e2e8f0 var(--slider-fill, 33%), #e2e8f0 100%);
             outline: none;
-
+            transition: background 0.18s ease;
         }
 
+        .slider:focus-visible {
+            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.25);
+        }
 
+        .slider::-webkit-slider-runnable-track {
+            height: 10px;
+            border-radius: 9999px;
+            background: transparent;
+        }
 
         .slider::-webkit-slider-thumb {
-
             appearance: none;
-
             width: 18px;
-
             height: 18px;
-
             border-radius: 50%;
-
             background: #0ea5e9;
-
             border: 2px solid #0f172a;
-
-            box-shadow: 0 0 10px rgba(14, 165, 233, 0.6);
-
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.45);
             cursor: pointer;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+            
+        }
 
+        .slider::-webkit-slider-thumb:active {
+            transform: scale(1.05);
+            box-shadow: 0 6px 14px rgba(14, 165, 233, 0.55);
+        }
+
+        .slider::-moz-range-track {
+            height: 10px;
+            border-radius: 9999px;
+            background: transparent;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #0ea5e9;
+            border: 2px solid #0f172a;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.45);
+            cursor: pointer;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+
+        .slider::-moz-range-thumb:active {
+            transform: scale(1.05);
+            box-shadow: 0 6px 14px rgba(14, 165, 233, 0.55);
         }
 
     </style>
@@ -2075,9 +2097,37 @@
 
 
 
+        const updateIntensitySliderVisual = () => {
+
+            const slider = document.getElementById('mission-intensity');
+
+            if (!slider) return;
+
+
+
+            const min = Number(slider.min) || 1;
+
+            const max = Number(slider.max) || 3;
+
+            const value = Number(slider.value);
+
+
+
+            const percent = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
+
+
+
+            slider.style.setProperty('--slider-fill', `${percent}%`);
+
+        };
+
+
+
         const updateMissionPreview = () => {
 
             const { preset, projectedAP, hpRisk, injuryChance, apCost } = getMissionSnapshot();
+
+            updateIntensitySliderVisual();
 
             const apEl = document.getElementById('mission-ap');
 
