@@ -22,180 +22,100 @@
 
         body { font-family: 'Inter', sans-serif; }
 
-
-
-        /* Custom Styles for Sleek/High-Contrast Dark Mode */
+        /* Light, calm iOS-inspired surface styles */
+        body {
+            background: radial-gradient(circle at 20% 20%, #f4f7fb 0%, #e9eef6 45%, #dfe5f2 100%);
+            color: #0f172a;
+        }
 
         .app-card {
-
-            background-color: #0d0d1a; /* Very deep dark color */
-
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-
-            border: 1px solid #1f2937; /* Subtle dark border */
-
+            background-color: #ffffff;
+            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+            border: 1px solid #e5e7eb;
         }
-
-
 
         .status-block {
-
-            background-color: #1a1a2e; /* Primary component color */
-
-            border-radius: 16px;
-
+            background: linear-gradient(180deg, #ffffff 0%, #f7f9fd 100%);
+            border-radius: 18px;
             padding: 1.25rem;
-
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2); /* Soft inner shadow for depth */
-
+            border: 1px solid #e5e7eb;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
         }
 
-        
-
-        /* Modern Pill Buttons */
-
+        /* Modern pill buttons reminiscent of iOS */
         .action-btn {
-
-            border-radius: 0.75rem;
-
+            border-radius: 9999px;
             font-weight: 700;
-
-            padding: 0.75rem 1rem;
-
-            color: #ffffff;
-
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.35);
-
+            padding: 0.9rem 1.1rem;
+            color: #0f172a;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.18);
+            border: 1px solid #e5e7eb;
+            background: linear-gradient(145deg, #f8fbff, #e8f1ff);
         }
-
-
 
         .action-btn:hover {
-
-            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.45);
-
+            box-shadow: 0 12px 36px rgba(59, 130, 246, 0.24);
         }
-
-
 
         .action-btn:active {
-
-            transform: scale(0.98);
-
+            transform: translateY(1px);
         }
-
-
 
         .action-btn:disabled {
-
-            opacity: 0.3;
-
+            opacity: 0.4;
             box-shadow: none;
-
             cursor: not-allowed;
-
         }
 
-
-
-        /* Stat Pill styling: Higher contrast */
-
+        /* Stat pill styling */
         .stat-pill {
-
-            background-color: #1f2937; /* Darker stat background */
-
+            background-color: #f8fafc;
             display: flex;
-
             align-items: center;
-
             justify-content: space-between;
-
-            padding: 1rem;
-
-            border-radius: 0.75rem;
-
+            padding: 0.95rem 1rem;
+            border-radius: 1rem;
             gap: 0.75rem;
-
-            border: 1px solid #374151;
-
+            border: 1px solid #e2e8f0;
         }
 
-
-
-        /* HP Bar track for better depth */
-
+        /* HP Bar track */
         #hp-bar-track {
-
-            background-color: #111827;
-
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
-
+            background-color: #e2e8f0;
+            box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08);
         }
-
         .progress-track {
-
-            background-color: #0b1220;
-
-            border: 1px solid #1f2937;
-
+            background-color: #eef2f7;
+            border: 1px solid #e2e8f0;
             border-radius: 9999px;
-
             height: 12px;
-
             overflow: hidden;
-
         }
-
-
 
         .progress-bar {
-
             height: 100%;
-
             border-radius: 9999px;
-
-            background: linear-gradient(90deg, #22d3ee, #60a5fa, #a855f7);
-
+            background: linear-gradient(90deg, #38bdf8, #6366f1);
             transition: width 0.4s ease;
-
         }
-
-
 
         /* High-contrast status line for AP/SP */
-
         .currency-display {
-
-            background-color: #111827;
-
+            background-color: #f8fafc;
             display: flex;
-
             justify-content: space-between;
-
-            font-size: 1.25rem;
-
+            font-size: 1.1rem;
             font-weight: 800;
-
-            padding: 1rem;
-
-            border-radius: 0.75rem;
-
+            padding: 0.95rem 1rem;
+            border-radius: 1rem;
             margin-top: 1rem;
-
-            border: 1px solid #374151;
-
+            border: 1px solid #e2e8f0;
         }
 
-
-
         /* Pal Carousel */
-
         .pal-carousel {
-
-            background: linear-gradient(120deg, rgba(37, 99, 235, 0.12), rgba(16, 185, 129, 0.08));
-
+            background: linear-gradient(120deg, rgba(59, 130, 246, 0.12), rgba(52, 211, 153, 0.08));
         }
 
 
@@ -284,7 +204,7 @@
 
 </head>
 
-<body class="bg-gray-900 text-gray-100 min-h-screen p-4 flex items-center justify-center">
+<body class="text-gray-900 min-h-screen p-4 flex items-center justify-center">
 
 
 
@@ -292,11 +212,11 @@
 
         <header class="text-center mb-6">
 
-            <h1 class="text-4xl font-extrabold text-blue-300 tracking-wider">X-Pet: Strategist</h1>
+            <h1 class="text-4xl font-extrabold text-blue-600 tracking-tight">XPals</h1>
 
-            <p class="text-sm text-gray-400 mt-2">Built for seamless PC + mobile play. Manage your Pal anywhere.</p>
+            <p class="text-sm text-gray-500 mt-2">A calm companion that grows with your day.</p>
 
-            <p id="user-id-display" class="text-xs text-gray-600 mt-1"></p>
+            <p id="user-id-display" class="text-xs text-gray-400 mt-1"></p>
 
         </header>
 
@@ -312,9 +232,9 @@
 
                 <div class="text-right">
 
-                    <h2 id="pet-name" class="text-3xl font-bold text-gray-50">New Hatchling</h2>
+                    <h2 id="pet-name" class="text-3xl font-bold text-gray-800">New Hatchling</h2>
 
-                    <p id="pet-species" class="text-lg font-semibold text-blue-400">Egg</p>
+                    <p id="pet-species" class="text-lg font-semibold text-blue-500">Egg</p>
 
                 </div>
 
@@ -328,9 +248,9 @@
 
                 <p class="text-sm font-semibold flex justify-between mb-2">
 
-                    <span>Health: <span id="pet-hp-value">100</span>/<span id="pet-max-hp">100</span></span>
+                    <span class="text-gray-500">Health</span>
 
-                    <span id="decay-status" class="text-xs font-normal text-red-400"></span>
+                    <span><span id="pet-hp-value">100</span>/<span id="pet-max-hp">100</span></span>
 
                 </p>
 
@@ -347,11 +267,8 @@
             <!-- AP/SP -->
 
             <div class="currency-display">
-
-                <span class="text-yellow-400">⚡ AP: <span id="pet-ap">0</span></span>
-
-                <span class="text-cyan-400">✨ SP: <span id="pet-sp">0</span></span>
-
+                <span class="text-blue-600">⚡ AP: <span id="pet-ap">0</span></span>
+                <span class="text-indigo-500">✨ SP: <span id="pet-sp">0</span></span>
             </div>
 
         </div>
@@ -360,15 +277,15 @@
 
         <!-- Injury Status -->
 
-        <div id="injury-status" class="hidden status-block bg-red-800/30 border border-red-500/50 mb-6">
+        <div id="injury-status" class="hidden status-block bg-red-50 border border-red-200 text-red-600 mb-6">
 
-            <p class="font-bold text-red-200 mb-2">🚨 INJURED! 🚨</p>
+            <p class="font-bold mb-2">Injury detected</p>
 
-            <p class="text-sm text-red-300">2x Health Decay. Disabled from Battles/Training.</p>
+            <p class="text-sm">Health decay doubled. Training and battles are paused.</p>
 
-            <button onclick="handleHeal()" id="heal-button" class="mt-3 w-full action-btn bg-red-700 hover:bg-red-600 shadow-red-900/50">
+            <button onclick="handleHeal()" id="heal-button" class="mt-3 w-full action-btn bg-gradient-to-r from-red-100 to-red-200 text-red-700">
 
-                Heal Pet (200 AP)
+                Heal (200 AP)
 
             </button>
 
@@ -382,15 +299,15 @@
 
             <div class="flex items-center justify-between mb-2">
 
-                <h3 class="text-xl font-bold text-emerald-300">Evolution Tracker</h3>
+                <h3 class="text-xl font-bold text-blue-600">Growth</h3>
 
-                <span id="evolution-status-label" class="text-xs text-gray-400">Collect 5,000 AP and specialize a stat.</span>
+                <span id="evolution-status-label" class="text-xs text-gray-500">Earn 5,000 AP and focus one stat.</span>
 
             </div>
 
 
 
-            <p id="evolution-dominant-stat" class="text-sm text-gray-300">Train one stat to 15+ with no ties to trigger evolution.</p>
+            <p id="evolution-dominant-stat" class="text-sm text-gray-500">Raise any stat to 15+ (no ties) to evolve.</p>
 
 
 
@@ -420,9 +337,9 @@
 
         <!-- Message Log (Sleek console) -->
 
-        <div id="message-log" class="mb-6 h-28 overflow-y-auto p-4 bg-gray-900/50 rounded-xl text-sm text-gray-400 space-y-1 border border-gray-700">
+        <div id="message-log" class="mb-6 h-28 overflow-y-auto p-4 bg-white border border-gray-200 rounded-xl text-sm text-gray-500 space-y-1">
 
-            <p>Welcome, Strategist. Initializing simulation...</p>
+            <p>Welcome! We keep updates simple here.</p>
 
         </div>
 
@@ -431,31 +348,31 @@
 
         <div class="mb-6">
 
-            <h3 class="text-xl font-bold mb-3 text-blue-300">Stats (Allocate SP)</h3>
+            <h3 class="text-xl font-bold mb-3 text-blue-600">Stats</h3>
 
             <div class="space-y-3">
 
                 <div data-stat="str" class="stat-pill">
 
-                    <span class="text-lg">💪 Strength: <span id="stat-str" class="font-extrabold text-white">1</span></span>
+                    <span class="text-lg text-gray-700">💪 Strength <span id="stat-str" class="font-extrabold text-gray-900">1</span></span>
 
-                    <button onclick="allocateSP('str')" class="bg-blue-600 hover:bg-blue-700 text-white text-lg w-8 h-8 rounded-full transition duration-200">+</button>
+                    <button onclick="allocateSP('str')" class="bg-white border border-gray-200 text-blue-600 text-lg w-9 h-9 rounded-full transition duration-200 shadow-sm">+</button>
 
                 </div>
 
                 <div data-stat="int" class="stat-pill">
 
-                    <span class="text-lg">🧠 Intelligence: <span id="stat-int" class="font-extrabold text-white">1</span></span>
+                    <span class="text-lg text-gray-700">🧠 Intelligence <span id="stat-int" class="font-extrabold text-gray-900">1</span></span>
 
-                    <button onclick="allocateSP('int')" class="bg-blue-600 hover:bg-blue-700 text-white text-lg w-8 h-8 rounded-full transition duration-200">+</button>
+                    <button onclick="allocateSP('int')" class="bg-white border border-gray-200 text-blue-600 text-lg w-9 h-9 rounded-full transition duration-200 shadow-sm">+</button>
 
                 </div>
 
                 <div data-stat="end" class="stat-pill">
 
-                    <span class="text-lg">🛡️ Endurance: <span id="stat-end" class="font-extrabold text-white">1</span></span>
+                    <span class="text-lg text-gray-700">🛡️ Endurance <span id="stat-end" class="font-extrabold text-gray-900">1</span></span>
 
-                    <button onclick="allocateSP('end')" class="bg-blue-600 hover:bg-blue-700 text-white text-lg w-8 h-8 rounded-full transition duration-200">+</button>
+                    <button onclick="allocateSP('end')" class="bg-white border border-gray-200 text-blue-600 text-lg w-9 h-9 rounded-full transition duration-200 shadow-sm">+</button>
 
                 </div>
 
@@ -467,29 +384,29 @@
 
         <!-- Action Buttons -->
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
-            <button onclick="handleSyncActivity()" id="sync-button" class="action-btn bg-blue-600 hover:bg-blue-500 w-full">
+            <button onclick="handleSyncActivity()" id="sync-button" class="action-btn w-full">
 
-                Sync X Activity <span class="text-sm font-normal">(+AP)</span>
-
-            </button>
-
-            <button onclick="handleFeed()" id="feed-button" class="action-btn bg-green-600 hover:bg-green-500 w-full">
-
-                Feed (100 AP) <span class="text-sm font-normal">(+HP / Pause)</span>
+                Sync Activity <span class="text-sm font-normal text-gray-500">Quick boost</span>
 
             </button>
 
-            <button onclick="handleTrain()" id="train-button" class="action-btn bg-yellow-600 hover:bg-yellow-500 w-full">
+            <button onclick="handleFeed()" id="feed-button" class="action-btn w-full bg-gradient-to-r from-emerald-50 to-green-50">
 
-                Train (150 AP) <span class="text-sm font-normal">(+SP / Risk)</span>
+                Feed (100 AP) <span class="text-sm font-normal text-gray-500">Stabilize HP</span>
 
             </button>
 
-            <button onclick="handleBattle()" id="battle-button" class="action-btn bg-red-600 hover:bg-red-500 w-full">
+            <button onclick="handleTrain()" id="train-button" class="action-btn w-full bg-gradient-to-r from-blue-50 to-indigo-50">
 
-                Battle (120 AP) <span class="text-sm font-normal">(Massive Gain / High Risk)</span>
+                Train (150 AP) <span class="text-sm font-normal text-gray-500">Grow a stat</span>
+
+            </button>
+
+            <button onclick="handleBattle()" id="battle-button" class="action-btn w-full bg-gradient-to-r from-rose-50 to-orange-50">
+
+                Battle (120 AP) <span class="text-sm font-normal text-gray-500">High reward</span>
 
             </button>
 
@@ -505,17 +422,17 @@
 
                 <div>
 
-                    <h3 class="text-xl font-bold text-cyan-300">Tactical Mission Deck</h3>
+                    <h3 class="text-xl font-bold text-blue-600">Missions</h3>
 
-                    <p class="text-sm text-gray-400">Pick an intensity, preview the risk/reward, and deploy your pal instantly.</p>
+                    <p class="text-sm text-gray-500">Slide to pick the effort that matches your mood.</p>
 
                 </div>
 
-                <div class="text-right text-sm text-gray-300">
+                <div class="text-right text-sm text-gray-500">
 
-                    <p class="font-semibold">Mission Type: <span id="mission-label" class="text-blue-300">Scout Pulse</span></p>
+                    <p class="font-semibold">Mode: <span id="mission-label" class="text-blue-600">Scout Pulse</span></p>
 
-                    <p id="mission-mood" class="text-xs text-gray-400">Pulse your pal for a morale boost.</p>
+                    <p id="mission-mood" class="text-xs text-gray-500">Pulse your pal for a morale boost.</p>
 
                 </div>
 
@@ -525,9 +442,9 @@
 
             <div class="space-y-3">
 
-                <label class="text-sm text-gray-300 flex items-center gap-3">
+                <label class="text-sm text-gray-600 flex items-center gap-3">
 
-                    <span class="w-24 text-gray-400">Intensity</span>
+                    <span class="w-24 text-gray-500">Intensity</span>
 
                     <input id="mission-intensity" type="range" min="1" max="3" value="1" class="slider" oninput="updateMissionPreview()">
 
@@ -535,29 +452,29 @@
 
 
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-200">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700">
+
+                        <div class="stat-pill">
+
+                            <span class="text-gray-600">Projected AP</span>
+
+                            <span id="mission-ap" class="font-extrabold text-blue-600">0</span>
+
+                        </div>
+
+                        <div class="stat-pill">
+
+                            <span class="text-gray-600">HP Risk</span>
+
+                            <span id="mission-hp" class="font-extrabold text-rose-500">0</span>
+
+                        </div>
 
                     <div class="stat-pill">
 
-                        <span class="text-gray-400">Projected AP</span>
+                        <span class="text-gray-600">Injury Chance</span>
 
-                        <span id="mission-ap" class="font-extrabold text-blue-300">0</span>
-
-                    </div>
-
-                    <div class="stat-pill">
-
-                        <span class="text-gray-400">HP Risk</span>
-
-                        <span id="mission-hp" class="font-extrabold text-red-300">0</span>
-
-                    </div>
-
-                    <div class="stat-pill">
-
-                        <span class="text-gray-400">Injury Chance</span>
-
-                        <span id="mission-injury" class="font-extrabold text-yellow-300">0%</span>
+                        <span id="mission-injury" class="font-extrabold text-amber-500">0%</span>
 
                     </div>
 
@@ -565,7 +482,7 @@
 
 
 
-                <label class="flex items-center gap-2 text-xs text-gray-300">
+                <label class="flex items-center gap-2 text-xs text-gray-500">
 
                     <input id="mission-shield" type="checkbox" class="h-4 w-4 text-blue-500" onchange="updateMissionPreview()">
 
@@ -579,9 +496,9 @@
 
             <div class="flex flex-col sm:flex-row gap-3">
 
-                <button onclick="handleMissionDeploy()" id="mission-button" class="action-btn bg-indigo-600 hover:bg-indigo-500 flex-1">Launch Mission</button>
+                <button onclick="handleMissionDeploy()" id="mission-button" class="action-btn flex-1">Launch Mission</button>
 
-                <button onclick="rollPetMood()" class="action-btn bg-gray-800 hover:bg-gray-700 border border-gray-700 flex-1">Play Pet Reaction</button>
+                <button onclick="rollPetMood()" class="action-btn bg-gradient-to-r from-slate-50 to-slate-100 flex-1">Play Pet Reaction</button>
 
             </div>
 
@@ -591,25 +508,25 @@
 
         <!-- X Activity Mixer -->
 
-        <div class="mt-6 status-block border border-blue-900/40">
+        <div class="mt-6 status-block border border-gray-200">
 
             <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
 
-                <div>
+                    <div>
 
-                    <h3 class="text-xl font-bold text-blue-300">Engagement Sync</h3>
+                        <h3 class="text-xl font-bold text-blue-600">Engagement Sync</h3>
 
-                    <p class="text-sm text-gray-400">Enter likes, comments, reposts, quote posts, and impressions from X. Works on desktop or mobile.</p>
+                        <p class="text-sm text-gray-500">Enter likes, comments, reposts, quote posts, and impressions from X. Works on desktop or mobile.</p>
 
-                </div>
+                    </div>
 
-                <div class="text-right text-sm text-gray-400">
+                    <div class="text-right text-sm text-gray-500">
 
-                    <p>AP Preview: <span id="ap-preview" class="text-blue-300 font-extrabold">50</span></p>
+                        <p>AP Preview: <span id="ap-preview" class="text-blue-600 font-extrabold">50</span></p>
 
-                    <p class="text-xs text-gray-500">(Includes Intelligence bonus)</p>
+                        <p class="text-xs text-gray-500">(Includes Intelligence bonus)</p>
 
-                </div>
+                    </div>
 
             </div>
 
@@ -617,33 +534,33 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
 
-                <label class="block text-sm text-gray-300">Likes
+                <label class="block text-sm text-gray-600">Likes
 
-                    <input id="likes-input" type="number" min="0" step="1" value="0" oninput="updateAPPreview()" class="mt-1 w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500">
-
-                </label>
-
-                <label class="block text-sm text-gray-300">Comments
-
-                    <input id="comments-input" type="number" min="0" step="1" value="0" oninput="updateAPPreview()" class="mt-1 w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500">
+                    <input id="likes-input" type="number" min="0" step="1" value="0" oninput="updateAPPreview()" class="mt-1 w-full p-3 rounded-lg bg-white border border-gray-200 text-gray-800 focus:ring-blue-200 focus:border-blue-300">
 
                 </label>
 
-                <label class="block text-sm text-gray-300">Reposts
+                <label class="block text-sm text-gray-600">Comments
 
-                    <input id="reposts-input" type="number" min="0" step="1" value="0" oninput="updateAPPreview()" class="mt-1 w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500">
-
-                </label>
-
-                <label class="block text-sm text-gray-300">Quote Posts
-
-                    <input id="quotes-input" type="number" min="0" step="1" value="0" oninput="updateAPPreview()" class="mt-1 w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500">
+                    <input id="comments-input" type="number" min="0" step="1" value="0" oninput="updateAPPreview()" class="mt-1 w-full p-3 rounded-lg bg-white border border-gray-200 text-gray-800 focus:ring-blue-200 focus:border-blue-300">
 
                 </label>
 
-                <label class="block text-sm text-gray-300">Impressions
+                <label class="block text-sm text-gray-600">Reposts
 
-                    <input id="impressions-input" type="number" min="0" step="50" value="0" oninput="updateAPPreview()" class="mt-1 w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500">
+                    <input id="reposts-input" type="number" min="0" step="1" value="0" oninput="updateAPPreview()" class="mt-1 w-full p-3 rounded-lg bg-white border border-gray-200 text-gray-800 focus:ring-blue-200 focus:border-blue-300">
+
+                </label>
+
+                <label class="block text-sm text-gray-600">Quote Posts
+
+                    <input id="quotes-input" type="number" min="0" step="1" value="0" oninput="updateAPPreview()" class="mt-1 w-full p-3 rounded-lg bg-white border border-gray-200 text-gray-800 focus:ring-blue-200 focus:border-blue-300">
+
+                </label>
+
+                <label class="block text-sm text-gray-600">Impressions
+
+                    <input id="impressions-input" type="number" min="0" step="50" value="0" oninput="updateAPPreview()" class="mt-1 w-full p-3 rounded-lg bg-white border border-gray-200 text-gray-800 focus:ring-blue-200 focus:border-blue-300">
 
                 </label>
 
@@ -651,13 +568,13 @@
 
 
 
-            <div class="mt-4 text-sm text-gray-400 space-y-1">
+            <div class="mt-4 text-sm text-gray-500 space-y-1">
 
                 <p>Weighted gains: Likes (x8), Comments (x12), Reposts (x18), Quote Posts (x22), Impressions (x5 per 250).</p>
 
                 <p>Boosted by Intelligence. Minimum 50 AP per sync to keep cadence smooth on the go.</p>
 
-                <p id="last-sync-details" class="text-gray-300"></p>
+                <p id="last-sync-details" class="text-gray-600"></p>
 
             </div>
 
@@ -668,11 +585,11 @@
 
         <!-- Initialization / Loading -->
 
-        <div id="loading" class="fixed inset-0 bg-gray-900 bg-opacity-95 flex flex-col items-center justify-center z-50">
+        <div id="loading" class="fixed inset-0 bg-white/85 backdrop-blur flex flex-col items-center justify-center z-50">
 
-            <div class="animate-spin rounded-full h-12 w-12 border-4 border-t-blue-400 border-b-blue-700 mb-4"></div>
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-t-blue-400 border-b-blue-600 mb-4"></div>
 
-            <p class="text-lg font-semibold text-blue-400">Authenticating and Syncing Pet Data...</p>
+            <p class="text-lg font-semibold text-blue-700">Authenticating and Syncing Pet Data...</p>
 
         </div>
 
@@ -680,13 +597,13 @@
 
         <!-- Custom Modal for Pet Name (Now Connect X) -->
 
-        <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center z-50">
+        <div id="modal-backdrop" class="fixed inset-0 bg-white/70 backdrop-blur-lg hidden items-center justify-center z-50">
 
-            <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-80 border border-blue-500/20">
+            <div class="bg-white p-8 rounded-xl shadow-2xl w-80 border border-gray-200">
 
-                <h3 class="text-2xl font-bold mb-4 text-blue-400">Sync Your X Profile</h3>
+                <h3 class="text-2xl font-bold mb-4 text-blue-600">Sync Your X Profile</h3>
 
-                <p class="text-sm text-gray-400 mb-3">Your pet's survival depends on your X activity!</p>
+                <p class="text-sm text-gray-500 mb-3">Your pet's survival depends on your X activity!</p>
 
 
 
@@ -694,15 +611,15 @@
 
                     <div class="flex items-center justify-between mb-2">
 
-                        <span class="text-[11px] font-semibold uppercase tracking-widest text-gray-400">Choose your X Pal</span>
+                        <span class="text-[11px] font-semibold uppercase tracking-widest text-gray-500">Choose your X Pal</span>
 
                         <span class="text-[11px] text-gray-500">SVG placeholders for now</span>
 
                     </div>
 
-                    <div class="pal-carousel relative overflow-hidden rounded-lg border border-gray-700/60 p-4">
+                    <div class="pal-carousel relative overflow-hidden rounded-lg border border-gray-200 p-4">
 
-                        <button aria-label="Previous pal" onclick="previousPal()" class="absolute left-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-gray-900/70 border border-gray-700 text-xl font-black text-blue-200 hover:bg-blue-900/30 transition">
+                        <button aria-label="Previous pal" onclick="previousPal()" class="absolute left-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white border border-gray-200 text-xl font-black text-blue-500 shadow-sm">
 
                             &#8249;
 
@@ -710,13 +627,13 @@
 
                         <div class="flex flex-col items-center gap-3">
 
-                            <img id="pal-image" src="" alt="Selected pal" class="h-28 w-28 object-contain rounded-xl border border-gray-700/70 bg-gray-900/70 shadow-inner">
+                            <img id="pal-image" src="" alt="Selected pal" class="h-28 w-28 object-contain rounded-xl border border-gray-200 bg-white shadow-inner">
 
                             <div class="text-center">
 
-                                <p id="pal-title" class="text-lg font-bold text-blue-200"></p>
+                                <p id="pal-title" class="text-lg font-bold text-blue-600"></p>
 
-                                <p id="pal-tagline" class="text-xs text-gray-300"></p>
+                                <p id="pal-tagline" class="text-xs text-gray-500"></p>
 
                             </div>
 
@@ -724,7 +641,7 @@
 
                         </div>
 
-                        <button aria-label="Next pal" onclick="nextPal()" class="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-gray-900/70 border border-gray-700 text-xl font-black text-blue-200 hover:bg-blue-900/30 transition">
+                        <button aria-label="Next pal" onclick="nextPal()" class="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white border border-gray-200 text-xl font-black text-blue-500 shadow-sm">
 
                             &#8250;
 
@@ -736,23 +653,23 @@
 
 
 
-                <input type="text" id="pet-name-input" placeholder="Enter your @X_handle" class="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white mb-4 focus:ring-blue-500 focus:border-blue-500">
+                <input type="text" id="pet-name-input" placeholder="Enter your @handle" class="w-full p-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 mb-4 focus:ring-2 focus:ring-blue-200 focus:border-blue-300">
 
-                <button onclick="connectXAccountAndHatch()" class="w-full action-btn bg-blue-600 hover:bg-blue-700">
+                <button onclick="connectXAccountAndHatch()" class="w-full action-btn">
 
-                    Connect & Hatch Pet
+                    Connect & Hatch
 
                 </button>
 
                 <div id="test-mode-actions" class="mt-3 space-y-2 hidden">
 
-                    <button onclick="bypassXSyncForTesting()" class="w-full action-btn bg-gray-700 hover:bg-gray-600 border border-gray-600">
+                    <button onclick="bypassXSyncForTesting()" class="w-full action-btn bg-white">
 
-                        Skip X Sync (Test Mode)
+                        Skip Sync (Test Mode)
 
                     </button>
 
-                    <p class="text-[11px] text-gray-400 leading-relaxed">Launches the sim with a test handle and seeds fake X activity so you can build without connecting.</p>
+                    <p class="text-[11px] text-gray-500 leading-relaxed">Instantly launch with a demo handle and starter activity.</p>
 
                 </div>
 
