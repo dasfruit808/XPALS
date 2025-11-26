@@ -556,7 +556,16 @@
 
         // --- Action Handlers (MUST be global for onclick in HTML) ---
 
+        const ensurePetLoaded = () => {
+            if (!petState) {
+                logMessage('Pet data is still loading. Please wait a moment and try again.', 'warning');
+                return false;
+            }
+            return true;
+        };
+
         window.handleSyncActivity = async () => {
+            if (!ensurePetLoaded()) return;
             if (petState.hp <= 0) return logMessage('Pet is deceased. Cannot perform actions.', 'error');
 
             const metrics = readMetricsFromInputs();
@@ -581,6 +590,7 @@
         };
 
         window.handleFeed = async () => {
+            if (!ensurePetLoaded()) return;
             if (petState.hp <= 0) return logMessage('Pet is deceased. Cannot perform actions.', 'error');
             if (petState.ap < 100) return logMessage('Not enough AP to Feed (requires 100 AP).', 'warning');
 
@@ -601,6 +611,7 @@
         };
 
         window.handleHeal = async () => {
+            if (!ensurePetLoaded()) return;
             if (petState.hp <= 0) return logMessage('Pet is deceased. Cannot perform actions.', 'error');
             if (!petState.isInjured) return logMessage('Pet is not injured.', 'info');
             if (petState.ap < 200) return logMessage('Not enough AP to Heal (requires 200 AP).', 'warning');
@@ -615,6 +626,7 @@
         };
 
         window.handleTrain = async () => {
+            if (!ensurePetLoaded()) return;
             if (petState.hp <= 0) return logMessage('Pet is deceased. Cannot perform actions.', 'error');
             if (petState.ap < 150) return logMessage('Not enough AP to Train (requires 150 AP).', 'warning');
             if (petState.isInjured) return logMessage('Cannot Train while Injured.', 'warning');
@@ -657,6 +669,7 @@
         };
 
         window.handleBattle = async () => {
+            if (!ensurePetLoaded()) return;
             if (petState.hp <= 0) return logMessage('Pet is deceased. Cannot perform actions.', 'error');
             if (petState.ap < 120) return logMessage('Not enough AP to Battle (requires 120 AP).', 'warning');
             if (petState.isInjured) return logMessage('Cannot Battle while Injured.', 'warning');
@@ -700,6 +713,7 @@
         };
 
         window.allocateSP = async (statKey) => {
+            if (!ensurePetLoaded()) return;
             if (petState.sp < 1) return logMessage('No Stat Points (SP) available for allocation.', 'warning');
 
             const newStats = { ...petState.stats, [statKey]: petState.stats[statKey] + 1 };
