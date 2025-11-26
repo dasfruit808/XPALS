@@ -716,7 +716,9 @@
 
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        const TEST_MODE_ENABLED = new URLSearchParams(window.location.search).get('testMode') === '1';
+        const urlParams = new URLSearchParams(window.location.search);
+        const TEST_MODE_ENABLED = urlParams.get('testMode') === '1';
+        const FORCE_OFFLINE_MODE = urlParams.get('offline') === '1';
 
         const DEFAULT_FAKE_ACTIVITY_STRING = 'likes=20,comments=8,reposts=3,quotes=2,impressions=1800';
 
@@ -2315,7 +2317,22 @@
 
             offlineMode = true;
 
-            petState = { ...INITIAL_PET_STATE, name: '@offline_demo' };
+            const modal = document.getElementById('modal-backdrop');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+
+            const seededMetrics = parseActivityString(DEFAULT_FAKE_ACTIVITY_STRING);
+            const seededAP = calculateAPFromMetrics(seededMetrics);
+
+            petState = {
+                ...INITIAL_PET_STATE,
+                name: '@offline_demo',
+                ap: seededAP + 250, // Seed AP so missions/stat allocations are immediately testable
+                sp: 6,
+                lastSyncBreakdown: { ...seededMetrics, apGained: seededAP }
+            };
 
             selectedPalIndex = PAL_ROSTER.findIndex(pal => pal.id === petState.palId);
 
@@ -2332,6 +2349,16 @@
 
 
         const initializeGame = async () => {
+
+            if (FORCE_OFFLINE_MODE) {
+
+                enterOfflineMode('Offline mode forced by URL parameter.');
+
+                return;
+
+            }
+
+
 
             if (!firebaseConfig) {
 
