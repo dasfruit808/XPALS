@@ -965,9 +965,13 @@
 
         const INJURY_CHANCE = 0.15; // 15%
 
+        const DECAY_CHECK_INTERVAL_MS = 60 * 1000; // Refresh decay + UI every minute
+
 
 
         let selectedPalIndex = 0;
+
+        let decayIntervalId = null;
 
 
 
@@ -1164,7 +1168,9 @@
 
             petState.hp = Math.max(0, petState.hp); // HP cannot be negative
 
+            // Always render immediately so offline mode and local state stay in sync
 
+            renderUI();
 
             const petRef = getPetDocRef();
 
@@ -1723,6 +1729,27 @@
         };
 
 
+
+
+
+        /** Keeps decay checks and countdown UI fresh while the app is open. */
+
+        const startDecayTicker = () => {
+
+            if (decayIntervalId) clearInterval(decayIntervalId);
+
+
+            decayIntervalId = setInterval(async () => {
+
+                if (!petState) return;
+
+                await checkAndApplyDecay();
+
+                renderUI();
+
+            }, DECAY_CHECK_INTERVAL_MS);
+
+        };
 
 
 
@@ -2822,6 +2849,8 @@
         renderPalCarousel();
 
         updateMissionPreview();
+
+        startDecayTicker();
 
         window.onload = () => {
 
