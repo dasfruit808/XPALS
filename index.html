@@ -518,7 +518,9 @@
 
                         <h3 class="text-xl font-bold text-blue-600">Engagement Sync</h3>
 
-                        <p class="text-sm text-gray-500">Enter likes, comments, reposts, quote posts, and impressions from X. Works on desktop or mobile.</p>
+                        <p class="text-sm text-gray-500">Automatically pulls your latest X totals and converts new activity into AP once per day.</p>
+
+                        <p class="text-xs text-gray-500">We cache your last snapshot so only new likes, comments, reposts, quote posts, and impressions count.</p>
 
                     </div>
 
@@ -526,7 +528,7 @@
 
                         <p>AP Preview: <span id="ap-preview" class="text-blue-600 font-extrabold">50</span></p>
 
-                        <p class="text-xs text-gray-500">(Includes Intelligence bonus)</p>
+                        <p class="text-xs text-gray-500">Based on the delta since your last sync + Intelligence bonus</p>
 
                     </div>
 
@@ -572,11 +574,15 @@
 
             <div class="mt-4 text-sm text-gray-500 space-y-1">
 
-                <p>Weighted gains: Likes (x8), Comments (x12), Reposts (x18), Quote Posts (x22), Impressions (x5 per 250).</p>
+                <p>Automatic fetching uses the freshest totals available; if you need to manually seed, paste today’s counts and we’ll diff against your last snapshot.</p>
 
-                <p>Boosted by Intelligence. Minimum 50 AP per sync to keep cadence smooth on the go.</p>
+                <p>Boosted by Intelligence. Minimum 50 AP per sync keeps cadence smooth on the go.</p>
 
                 <p id="last-sync-details" class="text-gray-600"></p>
+
+                <p id="last-sync-delta" class="text-xs text-gray-500"></p>
+
+                <p id="sync-cooldown-note" class="text-xs text-gray-500"></p>
 
             </div>
 
@@ -823,6 +829,14 @@
 
 
         // --- Core Pet Data & Rules ---
+        const ZERO_ENGAGEMENT_SNAPSHOT = {
+            likes: 0,
+            comments: 0,
+            reposts: 0,
+            quotes: 0,
+            impressions: 0,
+        };
+
 
         const INITIAL_PET_STATE = {
 
@@ -854,21 +868,23 @@
 
             lastDecayTimestamp: Date.now(),   // Last time decay was calculated and applied
 
+            lastSyncTimestamp: 0,
+
+            lastEngagementSnapshot: { ...ZERO_ENGAGEMENT_SNAPSHOT },
+
             evolved: false,
 
             lastSyncBreakdown: {
 
-                likes: 0,
+                ...ZERO_ENGAGEMENT_SNAPSHOT,
 
-                comments: 0,
+                apGained: 0,
 
-                reposts: 0,
+                cadenceBonus: 0,
 
-                quotes: 0,
+                depthBonus: 0,
 
-                impressions: 0,
-
-                apGained: 0
+                intBonus: 0
 
             }
 
@@ -885,6 +901,8 @@
         const INJURY_CHANCE = 0.15; // 15%
 
         const DECAY_CHECK_INTERVAL_MS = 60 * 1000; // Refresh decay + UI every minute
+
+        const SYNC_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
 
 
@@ -1290,16 +1308,45 @@
             // Last sync breakdown
 
             const lastSyncDetails = document.getElementById('last-sync-details');
+            const lastSyncDelta = document.getElementById('last-sync-delta');
+
+            const cooldownNote = document.getElementById('sync-cooldown-note');
 
             const breakdown = petState.lastSyncBreakdown;
 
-            if (breakdown) {
+            const lastSyncTimestamp = petState.lastSyncTimestamp || 0;
 
-                lastSyncDetails.textContent = `Last sync → +${breakdown.apGained || 0} AP from ${breakdown.likes || 0} likes, ${breakdown.comments || 0} comments, ${breakdown.reposts || 0} reposts, ${breakdown.quotes || 0} quotes, ${breakdown.impressions || 0} impressions.`;
+            if (breakdown && lastSyncTimestamp) {
+
+                const lastSyncLabel = new Date(lastSyncTimestamp).toLocaleString();
+
+                lastSyncDetails.textContent = `Last sync (${lastSyncLabel}) → +${breakdown.apGained || 0} AP awarded.`;
+
+                lastSyncDelta.textContent = `Delta counted: ${breakdown.likes || 0} likes, ${breakdown.comments || 0} comments, ${breakdown.reposts || 0} reposts, ${breakdown.quotes || 0} quotes, ${breakdown.impressions || 0} impressions.`;
 
             } else {
 
                 lastSyncDetails.textContent = 'Sync your first X session to see the breakdown here.';
+
+                lastSyncDelta.textContent = 'No delta calculated yet — we’ll show the per-metric gains after your first sync.';
+
+            }
+
+            const cooldownRemaining = lastSyncTimestamp ? Math.max(0, SYNC_COOLDOWN_MS - (Date.now() - lastSyncTimestamp)) : 0;
+
+            const syncButton = document.getElementById('sync-button');
+
+            if (cooldownRemaining > 0) {
+
+                if (syncButton) syncButton.disabled = true;
+
+                cooldownNote.textContent = `Daily sync cooldown active. Try again in ${formatDuration(cooldownRemaining)}.`;
+
+            } else {
+
+                if (syncButton) syncButton.disabled = false;
+
+                cooldownNote.textContent = 'Ready to fetch the latest engagement snapshot.';
 
             }
 
@@ -1545,13 +1592,75 @@
 
 
 
+        const computeDeltaMetrics = (latestTotals = ZERO_ENGAGEMENT_SNAPSHOT) => {
+
+            const baseline = petState?.lastEngagementSnapshot || ZERO_ENGAGEMENT_SNAPSHOT;
+
+            const sanitizedLatest = sanitizeMetrics(latestTotals);
+
+            const delta = {};
+
+            Object.keys(ZERO_ENGAGEMENT_SNAPSHOT).forEach(key => {
+
+                delta[key] = Math.max(0, (sanitizedLatest[key] || 0) - (baseline[key] || 0));
+
+            });
+
+            return delta;
+
+        };
+
+
+
+        const formatDuration = (ms) => {
+
+            const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+
+            const hours = Math.floor(totalSeconds / 3600);
+
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+            return `${hours}h ${minutes}m`;
+
+        };
+
+
+
+        const getLatestEngagementTotals = async () => {
+
+            if (TEST_MODE_ENABLED || offlineMode) {
+
+                return sanitizeMetrics(parseActivityString(DEFAULT_FAKE_ACTIVITY_STRING));
+
+            }
+
+
+
+            if (window.__latestEngagementTotals) {
+
+                return sanitizeMetrics(window.__latestEngagementTotals);
+
+            }
+
+
+
+            const manualFallback = readMetricsFromInputs();
+
+            logMessage('Using manual totals until automatic fetch is wired.', 'info');
+
+            return manualFallback;
+
+        };
+
+
+
         window.updateAPPreview = () => {
 
             if (!petState) return;
 
-            const metrics = readMetricsFromInputs();
+            const deltaMetrics = computeDeltaMetrics(readMetricsFromInputs());
 
-            const { apGained } = calculateAPFromMetrics(metrics);
+            const { apGained } = calculateAPFromMetrics(deltaMetrics);
 
             document.getElementById('ap-preview').textContent = apGained.toLocaleString();
 
@@ -1826,9 +1935,15 @@
 
 
 
-            const metrics = parseActivityString(activityString);
+            const metrics = sanitizeMetrics(parseActivityString(activityString));
 
-            const { apGained, breakdown } = calculateAPFromMetrics(metrics);
+            const deltaMetrics = computeDeltaMetrics(metrics);
+
+            const { apGained, breakdown } = calculateAPFromMetrics(deltaMetrics);
+
+
+
+            const now = Date.now();
 
 
 
@@ -1836,9 +1951,13 @@
 
                 ap: petState.ap + apGained,
 
-                lastActivityTimestamp: Date.now(),
+                lastActivityTimestamp: now,
 
-                lastSyncBreakdown: breakdown
+                lastSyncBreakdown: breakdown,
+
+                lastEngagementSnapshot: metrics,
+
+                lastSyncTimestamp: now
 
             });
 
@@ -2068,27 +2187,63 @@
 
 
 
-            const metrics = readMetricsFromInputs();
+            const now = Date.now();
 
-            if (Object.values(metrics).every(value => value === 0)) {
+            const lastSync = petState.lastSyncTimestamp || 0;
 
-                logMessage('No X engagement detected; awarding minimum cadence AP so your pet stays synced.', 'warning');
+            const cooldownRemaining = lastSync ? Math.max(0, SYNC_COOLDOWN_MS - (now - lastSync)) : 0;
+
+            if (cooldownRemaining > 0) {
+
+                const syncButton = document.getElementById('sync-button');
+
+                if (syncButton) syncButton.disabled = true;
+
+                logMessage(`Sync is limited to once every 24 hours. Try again in ${formatDuration(cooldownRemaining)}.`, 'warning');
+
+                return;
 
             }
 
-            const { apGained, breakdown } = calculateAPFromMetrics(metrics);
+
+
+            const latestTotals = await getLatestEngagementTotals();
 
 
 
-            await savePetState({
+            const deltaMetrics = computeDeltaMetrics(latestTotals);
+
+
+
+            if (Object.values(deltaMetrics).every(value => value === 0)) {
+
+                logMessage('No new X engagement detected; awarding cadence AP from the delta minimum.', 'warning');
+
+            }
+
+
+
+            const { apGained, breakdown } = calculateAPFromMetrics(deltaMetrics);
+
+
+
+            const updates = {
 
                 ap: petState.ap + apGained,
 
-                lastActivityTimestamp: Date.now(),
+                lastActivityTimestamp: now,
 
-                lastSyncBreakdown: breakdown
+                lastSyncBreakdown: breakdown,
 
-            });
+                lastEngagementSnapshot: sanitizeMetrics(latestTotals),
+
+                lastSyncTimestamp: now
+
+            };
+
+
+
+            await savePetState(updates);
 
 
 
@@ -2106,7 +2261,7 @@
 
 
 
-            logMessage(`Synced X Activity! Gained ${apGained} AP from your latest X engagement.`, 'success');
+            logMessage(`Synced X Activity! Gained ${apGained} AP from the latest engagement delta.`, 'success');
 
             checkEvolution();
 
@@ -2532,7 +2687,9 @@
                 name: '@offline_demo',
                 ap: seededAP + 250, // Seed AP so missions/stat allocations are immediately testable
                 sp: 6,
-                lastSyncBreakdown: breakdown
+                lastSyncBreakdown: breakdown,
+                lastEngagementSnapshot: sanitizeMetrics(seededMetrics),
+                lastSyncTimestamp: Date.now()
             };
 
             selectedPalIndex = PAL_ROSTER.findIndex(pal => pal.id === petState.palId);
@@ -2689,7 +2846,27 @@
 
                         if (typeof loadedData.lastSyncBreakdown === 'undefined') {
 
-                            loadedData.lastSyncBreakdown = { likes: 0, comments: 0, reposts: 0, quotes: 0, impressions: 0, apGained: 0 };
+                            loadedData.lastSyncBreakdown = { ...ZERO_ENGAGEMENT_SNAPSHOT, apGained: 0, cadenceBonus: 0, depthBonus: 0, intBonus: 0 };
+
+                        } else {
+
+                            loadedData.lastSyncBreakdown = { ...ZERO_ENGAGEMENT_SNAPSHOT, cadenceBonus: 0, depthBonus: 0, intBonus: 0, apGained: 0, ...loadedData.lastSyncBreakdown };
+
+                        }
+
+                        if (typeof loadedData.lastEngagementSnapshot === 'undefined') {
+
+                            loadedData.lastEngagementSnapshot = { ...ZERO_ENGAGEMENT_SNAPSHOT };
+
+                        } else {
+
+                            loadedData.lastEngagementSnapshot = sanitizeMetrics(loadedData.lastEngagementSnapshot);
+
+                        }
+
+                        if (typeof loadedData.lastSyncTimestamp === 'undefined') {
+
+                            loadedData.lastSyncTimestamp = 0;
 
                         }
 
