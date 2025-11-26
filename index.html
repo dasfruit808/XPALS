@@ -792,6 +792,15 @@
 
         const DEFAULT_FAKE_ACTIVITY_STRING = 'likes=20,comments=8,reposts=3,quotes=2,impressions=1800';
 
+        // Engagement guardrails
+        const METRIC_CAPS = {
+            likes: 5000,
+            comments: 4000,
+            reposts: 3000,
+            quotes: 2000,
+            impressions: 1500000,
+        };
+
 
 
         let db, auth, userId = null;
@@ -1497,49 +1506,115 @@
 
         /**
 
-         * Calculates AP gained from X engagement metrics and Intelligence bonus.
-
-         * Ensures a minimum base AP so users on mobile/desktop get predictable value.
+         * Sanitizes raw engagement metrics to prevent negative or extreme values from skewing rewards.
 
          */
 
-        const calculateAPFromMetrics = (metrics) => {
+        const sanitizeMetrics = (rawMetrics) => {
 
-            const likesAP = metrics.likes * 8;
-
-            const commentsAP = metrics.comments * 12;
-
-            const repostsAP = metrics.reposts * 18;
-
-            const quotesAP = metrics.quotes * 22;
-
-            const impressionAP = Math.floor(metrics.impressions / 250) * 5;
-
-            const engagementAP = likesAP + commentsAP + repostsAP + quotesAP + impressionAP;
+            const safeMetrics = {};
 
 
 
-            const intBonus = petState ? petState.stats.int * 5 : 0;
+            Object.keys(METRIC_CAPS).forEach(key => {
 
-            const total = engagementAP + intBonus;
+                const value = Number(rawMetrics[key]);
 
-            return Math.max(AP_MINIMUM + intBonus, total);
+                const finiteValue = Number.isFinite(value) ? value : 0;
+
+                const capped = Math.min(METRIC_CAPS[key], Math.max(0, finiteValue));
+
+                safeMetrics[key] = capped;
+
+            });
+
+
+
+            return safeMetrics;
 
         };
 
 
 
-        const readMetricsFromInputs = () => ({
+        /**
 
-            likes: Math.max(0, Number(document.getElementById('likes-input').value) || 0),
+         * Calculates AP gained from X engagement metrics and Intelligence bonus.
 
-            comments: Math.max(0, Number(document.getElementById('comments-input').value) || 0),
+         * Uses caps and quality bonuses to keep rewards fair and meaningful.
 
-            reposts: Math.max(0, Number(document.getElementById('reposts-input').value) || 0),
+         */
 
-            quotes: Math.max(0, Number(document.getElementById('quotes-input').value) || 0),
+        const calculateAPFromMetrics = (metrics) => {
 
-            impressions: Math.max(0, Number(document.getElementById('impressions-input').value) || 0),
+            const safeMetrics = sanitizeMetrics(metrics);
+
+
+
+            const weightedEngagement =
+
+                safeMetrics.likes * 6 +
+
+                safeMetrics.comments * 15 +
+
+                safeMetrics.reposts * 22 +
+
+                safeMetrics.quotes * 26;
+
+
+
+            const reachScore = Math.round(Math.sqrt(safeMetrics.impressions) * 0.9);
+
+            const conversationScore = Math.round((safeMetrics.comments + safeMetrics.quotes) * 6 + safeMetrics.reposts * 4);
+
+            const depthBonus = safeMetrics.comments || safeMetrics.quotes ? Math.min(120, Math.round(conversationScore * 0.25)) : 0;
+
+            const cadenceBonus = Math.min(100, Math.round((weightedEngagement + reachScore) * 0.1));
+
+
+
+            const engagementAP = weightedEngagement + reachScore + depthBonus + cadenceBonus;
+
+            const intBonus = petState ? petState.stats.int * 6 : 0;
+
+            const apGained = Math.max(AP_MINIMUM + intBonus, Math.round(engagementAP + intBonus));
+
+
+
+            return {
+
+                apGained,
+
+                breakdown: {
+
+                    ...safeMetrics,
+
+                    apGained,
+
+                    cadenceBonus,
+
+                    depthBonus,
+
+                    intBonus,
+
+                }
+
+            };
+
+        };
+
+
+
+        const readMetricsFromInputs = () => sanitizeMetrics({
+
+            likes: Number(document.getElementById('likes-input').value) || 0,
+
+            comments: Number(document.getElementById('comments-input').value) || 0,
+
+            reposts: Number(document.getElementById('reposts-input').value) || 0,
+
+            quotes: Number(document.getElementById('quotes-input').value) || 0,
+
+            impressions: Number(document.getElementById('impressions-input').value) || 0,
 
         });
 
@@ -1551,9 +1626,9 @@
 
             const metrics = readMetricsFromInputs();
 
-            const preview = calculateAPFromMetrics(metrics);
+            const { apGained } = calculateAPFromMetrics(metrics);
 
-            document.getElementById('ap-preview').textContent = preview.toLocaleString();
+            document.getElementById('ap-preview').textContent = apGained.toLocaleString();
 
         };
 
@@ -1807,7 +1882,7 @@
 
             const metrics = parseActivityString(activityString);
 
-            const apGained = calculateAPFromMetrics(metrics);
+            const { apGained, breakdown } = calculateAPFromMetrics(metrics);
 
 
 
@@ -1817,7 +1892,7 @@
 
                 lastActivityTimestamp: Date.now(),
 
-                lastSyncBreakdown: { ...metrics, apGained }
+                lastSyncBreakdown: breakdown
 
             });
 
@@ -2049,9 +2124,13 @@
 
             const metrics = readMetricsFromInputs();
 
+            if (Object.values(metrics).every(value => value === 0)) {
 
+                logMessage('No X engagement detected; awarding minimum cadence AP so your pet stays synced.', 'warning');
 
-            const apGained = calculateAPFromMetrics(metrics);
+            }
+
+            const { apGained, breakdown } = calculateAPFromMetrics(metrics);
 
 
 
@@ -2061,7 +2140,7 @@
 
                 lastActivityTimestamp: Date.now(),
 
-                lastSyncBreakdown: { ...metrics, apGained }
+                lastSyncBreakdown: breakdown
 
             });
 
@@ -2500,14 +2579,14 @@
             }
 
             const seededMetrics = parseActivityString(DEFAULT_FAKE_ACTIVITY_STRING);
-            const seededAP = calculateAPFromMetrics(seededMetrics);
+            const { apGained: seededAP, breakdown } = calculateAPFromMetrics(seededMetrics);
 
             petState = {
                 ...INITIAL_PET_STATE,
                 name: '@offline_demo',
                 ap: seededAP + 250, // Seed AP so missions/stat allocations are immediately testable
                 sp: 6,
-                lastSyncBreakdown: { ...seededMetrics, apGained: seededAP }
+                lastSyncBreakdown: breakdown
             };
 
             selectedPalIndex = PAL_ROSTER.findIndex(pal => pal.id === petState.palId);
