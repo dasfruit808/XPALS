@@ -134,6 +134,34 @@
 
         }
 
+        .progress-track {
+
+            background-color: #0b1220;
+
+            border: 1px solid #1f2937;
+
+            border-radius: 9999px;
+
+            height: 12px;
+
+            overflow: hidden;
+
+        }
+
+
+
+        .progress-bar {
+
+            height: 100%;
+
+            border-radius: 9999px;
+
+            background: linear-gradient(90deg, #22d3ee, #60a5fa, #a855f7);
+
+            transition: width 0.4s ease;
+
+        }
+
 
 
         /* High-contrast status line for AP/SP */
@@ -343,6 +371,48 @@
                 Heal Pet (200 AP)
 
             </button>
+
+        </div>
+
+
+
+        <!-- Evolution Tracker -->
+
+        <div id="evolution-tracker" class="status-block mb-6">
+
+            <div class="flex items-center justify-between mb-2">
+
+                <h3 class="text-xl font-bold text-emerald-300">Evolution Tracker</h3>
+
+                <span id="evolution-status-label" class="text-xs text-gray-400">Collect 5,000 AP and specialize a stat.</span>
+
+            </div>
+
+
+
+            <p id="evolution-dominant-stat" class="text-sm text-gray-300">Train one stat to 15+ with no ties to trigger evolution.</p>
+
+
+
+            <div class="mt-3">
+
+                <div class="flex items-center justify-between text-xs text-gray-400 mb-1">
+
+                    <span>AP Progress</span>
+
+                    <span id="evolution-ap-label">0 / 5000</span>
+
+                </div>
+
+
+
+                <div class="progress-track">
+
+                    <div id="evolution-ap-bar" class="progress-bar" style="width: 0%"></div>
+
+                </div>
+
+            </div>
 
         </div>
 
@@ -734,6 +804,10 @@
 
         const AP_MINIMUM = 50;
 
+        const EVOLUTION_AP_THRESHOLD = 5000;
+
+        const EVOLUTION_STAT_DOMINANCE = 15;
+
 
 
         const PAL_ROSTER = [
@@ -1107,6 +1181,108 @@
 
         /** Renders the current pet state to the UI. */
 
+        const renderEvolutionTracker = () => {
+
+            const tracker = document.getElementById('evolution-tracker');
+
+            if (!petState || !tracker) return;
+
+
+
+            const statusLabel = document.getElementById('evolution-status-label');
+
+            const dominantEl = document.getElementById('evolution-dominant-stat');
+
+            const apLabel = document.getElementById('evolution-ap-label');
+
+            const apBar = document.getElementById('evolution-ap-bar');
+
+
+
+            const stats = petState.stats;
+
+            const maxStatValue = Math.max(stats.str, stats.int, stats.end);
+
+            const dominantStats = Object.keys(stats).filter(key => stats[key] === maxStatValue);
+
+            const apProgress = Math.min(1, petState.ap / EVOLUTION_AP_THRESHOLD);
+
+            const apRemaining = Math.max(0, EVOLUTION_AP_THRESHOLD - petState.ap);
+
+            const statNameMap = { str: 'Strength', int: 'Intelligence', end: 'Endurance' };
+
+
+
+            if (apLabel) apLabel.textContent = `${petState.ap.toLocaleString()} / ${EVOLUTION_AP_THRESHOLD.toLocaleString()}`;
+
+            if (apBar) apBar.style.width = `${Math.round(apProgress * 100)}%`;
+
+
+
+            if (petState.evolved) {
+
+                statusLabel.textContent = 'Evolution complete — enjoy your final form!';
+
+                statusLabel.className = 'text-xs text-emerald-300';
+
+                dominantEl.textContent = `${petState.species} is fully evolved.`;
+
+                return;
+
+            }
+
+
+
+            if (petState.ap >= EVOLUTION_AP_THRESHOLD) {
+
+                if (dominantStats.length === 1 && maxStatValue >= EVOLUTION_STAT_DOMINANCE) {
+
+                    const dominantLabel = statNameMap[dominantStats[0]] || dominantStats[0];
+
+                    statusLabel.textContent = `Ready to evolve — ${dominantLabel} leads at ${maxStatValue}.`;
+
+                    statusLabel.className = 'text-xs text-emerald-300';
+
+                } else if (maxStatValue < EVOLUTION_STAT_DOMINANCE) {
+
+                    statusLabel.textContent = `Push a stat to ${EVOLUTION_STAT_DOMINANCE}+ to unlock evolution.`;
+
+                    statusLabel.className = 'text-xs text-yellow-300';
+
+                } else {
+
+                    statusLabel.textContent = 'Break the stat tie to finalize evolution.';
+
+                    statusLabel.className = 'text-xs text-yellow-300';
+
+                }
+
+            } else {
+
+                statusLabel.textContent = `${apRemaining.toLocaleString()} AP left before evolution checks unlock.`;
+
+                statusLabel.className = 'text-xs text-gray-400';
+
+            }
+
+
+
+            if (dominantStats.length === 1) {
+
+                const dominantLabel = statNameMap[dominantStats[0]] || dominantStats[0];
+
+                dominantEl.textContent = `${dominantLabel} is leading at ${maxStatValue}. Keep training to secure evolution.`;
+
+            } else {
+
+                dominantEl.textContent = 'Stats are tied. Specialize one attribute to trigger evolution.';
+
+            }
+
+        };
+
+
+
         const renderUI = () => {
 
             if (!petState) return;
@@ -1305,6 +1481,8 @@
 
             const missionSnapshot = getMissionSnapshot();
 
+            renderEvolutionTracker();
+
             const missionMood = document.getElementById('mission-mood');
 
             if (missionMood) missionMood.textContent = missionSnapshot.preset.mood;
@@ -1481,9 +1659,7 @@
 
 
 
-            const AP_THRESHOLD = 5000;
-
-            if (petState.ap < AP_THRESHOLD) return;
+            if (petState.ap < EVOLUTION_AP_THRESHOLD) return;
 
 
 
@@ -1497,7 +1673,7 @@
 
             const dominantStats = Object.keys(stats).filter(key => stats[key] === maxStatValue);
 
-            if (dominantStats.length !== 1 || maxStatValue < 15) return; // Requires a clear winner and high enough stat
+            if (dominantStats.length !== 1 || maxStatValue < EVOLUTION_STAT_DOMINANCE) return; // Requires a clear winner and high enough stat
 
 
 
