@@ -244,6 +244,86 @@
 
 
 
+        <!-- Player Hub -->
+
+        <div id="player-hub" class="status-block mb-6">
+
+            <div class="flex items-center justify-between mb-4">
+
+                <div>
+
+                    <p class="text-[11px] font-semibold uppercase tracking-widest text-gray-500">Player Hub</p>
+
+                    <h3 class="text-xl font-bold text-blue-600">Profile</h3>
+
+                    <p class="text-xs text-gray-500">Drop in a profile photo to personalize your pilot card.</p>
+
+                </div>
+
+
+
+                <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-2 py-1 text-xs">
+
+                    <button aria-pressed="true" class="px-3 py-1 rounded-full bg-white text-blue-600 font-semibold shadow-sm border border-blue-100">Profile</button>
+
+                    <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-400">More soon</span>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="flex items-center gap-4">
+
+                <img id="player-avatar" src="assets/player-avatar.svg" alt="Player profile" class="h-16 w-16 rounded-2xl object-cover border border-gray-200 shadow-inner bg-white">
+
+                <div class="space-y-1">
+
+                    <p class="text-sm text-gray-500">Handle</p>
+
+                    <p id="player-handle" class="text-lg font-bold text-gray-800">@hatchling</p>
+
+                    <p class="text-xs text-gray-500">User ID: <span id="player-id">pending...</span></p>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="mt-4 space-y-2">
+
+                <label class="block text-sm text-gray-600">Profile photo URL
+
+                    <input id="profile-photo-input" type="url" inputmode="url" placeholder="https://images.example.com/avatar.png" class="mt-1 w-full p-3 rounded-lg bg-white border border-gray-200 text-gray-800 focus:ring-blue-200 focus:border-blue-300" />
+
+                </label>
+
+                <div class="flex flex-col sm:flex-row gap-2">
+
+                    <button onclick="updateProfilePhoto()" class="action-btn w-full sm:w-auto">
+
+                        Save Photo
+
+                    </button>
+
+                    <button onclick="resetProfilePhoto()" class="action-btn w-full sm:w-auto bg-white">
+
+                        Reset to Default
+
+                    </button>
+
+                </div>
+
+                <p class="text-[11px] text-gray-500">Use a square image link (HTTPS). We’ll cache it with your save data.</p>
+
+            </div>
+
+        </div>
+
+
+
         <!-- Pet Status Section -->
 
         <div id="pet-status" class="status-block mb-6">
@@ -816,6 +896,8 @@
 
         const DEFAULT_PAL = PAL_ROSTER[0];
 
+        const DEFAULT_PROFILE_PHOTO = 'assets/player-avatar.svg';
+
 
 
         const MISSION_PRESETS = {
@@ -871,6 +953,8 @@
             palId: DEFAULT_PAL.id,
 
             palImage: DEFAULT_PAL.image,
+
+            profilePhoto: DEFAULT_PROFILE_PHOTO,
 
             hp: 100,
 
@@ -1282,6 +1366,36 @@
             document.getElementById('pet-ap').textContent = petState.ap.toLocaleString();
 
             document.getElementById('pet-sp').textContent = petState.sp;
+
+
+
+            const playerAvatarEl = document.getElementById('player-avatar');
+
+            const playerHandleEl = document.getElementById('player-handle');
+
+            const playerIdEl = document.getElementById('player-id');
+
+            const profilePhotoInput = document.getElementById('profile-photo-input');
+
+
+
+            if (playerAvatarEl) playerAvatarEl.src = petState.profilePhoto || DEFAULT_PROFILE_PHOTO;
+
+            if (playerHandleEl) {
+
+                const handleLabel = petState.name || 'hatchling';
+
+                playerHandleEl.textContent = handleLabel.startsWith('@') ? handleLabel : `@${handleLabel}`;
+
+            }
+
+            if (playerIdEl) playerIdEl.textContent = userId || 'pending...';
+
+            if (profilePhotoInput && profilePhotoInput !== document.activeElement) {
+
+                profilePhotoInput.value = petState.profilePhoto || DEFAULT_PROFILE_PHOTO;
+
+            }
 
 
 
@@ -1920,6 +2034,66 @@
             }
 
             return true;
+
+        };
+
+
+
+        window.updateProfilePhoto = async () => {
+
+            if (!ensurePetLoaded()) return;
+
+
+
+            const input = document.getElementById('profile-photo-input');
+
+            if (!input) return;
+
+
+
+            const url = (input.value || '').trim();
+
+            if (!url) {
+
+                logMessage('Paste a profile photo URL to save it to your player hub.', 'warning');
+
+                return;
+
+            }
+
+
+
+            if (!/^https?:\/\//i.test(url)) {
+
+                logMessage('Profile photos must use an HTTP or HTTPS link.', 'error');
+
+                return;
+
+            }
+
+
+
+            await savePetState({ profilePhoto: url });
+
+            renderUI();
+
+            logMessage('Profile photo updated for your pilot card.', 'success');
+
+        };
+
+
+
+        window.resetProfilePhoto = async () => {
+
+            if (!ensurePetLoaded()) return;
+
+
+
+            await savePetState({ profilePhoto: DEFAULT_PROFILE_PHOTO });
+
+            renderUI();
+
+            logMessage('Profile photo reset to the default avatar.', 'info');
 
         };
 
@@ -2951,6 +3125,12 @@
                         if (typeof loadedData.species === 'undefined') {
 
                             loadedData.species = DEFAULT_PAL.name;
+
+                        }
+
+                        if (typeof loadedData.profilePhoto === 'undefined') {
+
+                            loadedData.profilePhoto = DEFAULT_PROFILE_PHOTO;
 
                         }
 
