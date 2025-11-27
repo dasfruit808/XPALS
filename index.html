@@ -202,7 +202,7 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
-            <button onclick="handleSyncActivity()" id="sync-button" class="action-btn action-primary w-full">
+            <button onclick="openSyncModal()" id="sync-button" class="action-btn action-primary w-full">
 
                 Sync Activity <span class="text-sm font-normal text-gray-500">Quick boost</span>
 
@@ -312,7 +312,7 @@
 
             <div class="flex flex-col sm:flex-row gap-3">
 
-                <button onclick="handleMissionDeploy()" id="mission-button" class="action-btn action-secondary flex-1">Launch Mission</button>
+                <button onclick="openMissionModal()" id="mission-button" class="action-btn action-secondary flex-1">Launch Mission</button>
 
                 <button onclick="rollPetMood()" class="action-btn bg-gradient-to-r from-slate-50 to-slate-100 flex-1">Play Pet Reaction</button>
 
@@ -499,6 +499,96 @@
 
         </div>
 
+
+
+        <!-- Mission Modal -->
+        <div id="mission-modal" class="modal-shell hidden">
+            <div class="modal-card">
+                <div class="flex items-start justify-between gap-3 mb-4">
+                    <div>
+                        <p class="modal-kicker">Mission Brief</p>
+                        <h3 id="mission-modal-title" class="text-2xl font-bold text-slate-800">Scout Pulse</h3>
+                        <p id="mission-modal-desc" class="text-sm text-gray-500">Preview your launch details before deploying.</p>
+                    </div>
+                    <button class="modal-close" onclick="closeMissionModal()">×</button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                    <div class="modal-stat">
+                        <p class="modal-stat-label">AP Outcome</p>
+                        <p id="mission-modal-ap" class="modal-stat-value text-blue-600">0 AP</p>
+                        <p id="mission-modal-cost" class="modal-stat-hint">Includes cost</p>
+                    </div>
+                    <div class="modal-stat">
+                        <p class="modal-stat-label">HP Risk</p>
+                        <p id="mission-modal-hp" class="modal-stat-value text-rose-500">-0 HP</p>
+                        <p class="modal-stat-hint">After shield & stats</p>
+                    </div>
+                    <div class="modal-stat">
+                        <p class="modal-stat-label">Injury Chance</p>
+                        <p id="mission-modal-injury" class="modal-stat-value text-amber-500">0%</p>
+                        <p class="modal-stat-hint">Higher at intense tiers</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-2 text-sm text-gray-600 mb-4">
+                    <div class="modal-row">
+                        <span>Intensity</span>
+                        <span id="mission-modal-intensity" class="font-semibold text-slate-900">Tier 1 · Scout</span>
+                    </div>
+                    <div class="modal-row">
+                        <span>Shield</span>
+                        <span id="mission-modal-shield" class="font-semibold text-slate-900">Off (save 20 AP)</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button class="action-btn bg-white text-gray-700 border-gray-200 flex-1" onclick="closeMissionModal()">Back</button>
+                    <button class="action-btn action-secondary flex-1" onclick="confirmMissionDeploy()">Confirm & Launch</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Engagement Sync Modal -->
+        <div id="sync-modal" class="modal-shell hidden">
+            <div class="modal-card">
+                <div class="flex items-start justify-between gap-3 mb-4">
+                    <div>
+                        <p class="modal-kicker">Engagement Sync</p>
+                        <h3 class="text-2xl font-bold text-slate-800">Ready to convert activity</h3>
+                        <p class="text-sm text-gray-500">Preview the delta we’ll apply before finalizing AP.</p>
+                    </div>
+                    <button class="modal-close" onclick="closeSyncModal()">×</button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-sm">
+                    <div class="modal-stat">
+                        <p class="modal-stat-label">Projected AP</p>
+                        <p id="sync-modal-ap" class="modal-stat-value text-blue-600">50</p>
+                        <p class="modal-stat-hint">Includes Intelligence bonus</p>
+                    </div>
+                    <div class="modal-stat">
+                        <p class="modal-stat-label">Cadence</p>
+                        <p id="sync-modal-cadence" class="modal-stat-value text-emerald-500">Ready now</p>
+                        <p id="sync-modal-cooldown" class="modal-stat-hint">No cooldown detected</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-gray-600 mb-4">
+                    <div class="modal-badge"><span>Likes</span><span id="sync-modal-likes" class="font-semibold text-slate-900">0</span></div>
+                    <div class="modal-badge"><span>Comments</span><span id="sync-modal-comments" class="font-semibold text-slate-900">0</span></div>
+                    <div class="modal-badge"><span>Reposts</span><span id="sync-modal-reposts" class="font-semibold text-slate-900">0</span></div>
+                    <div class="modal-badge"><span>Quotes</span><span id="sync-modal-quotes" class="font-semibold text-slate-900">0</span></div>
+                    <div class="modal-badge"><span>Impressions</span><span id="sync-modal-impressions" class="font-semibold text-slate-900">0</span></div>
+                    <div class="modal-badge"><span>Last Sync</span><span id="sync-modal-last" class="font-semibold text-slate-900">–</span></div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button class="action-btn bg-white text-gray-700 border-gray-200 flex-1" onclick="closeSyncModal()">Cancel</button>
+                    <button class="action-btn action-secondary flex-1" onclick="confirmSyncActivity()">Apply Sync</button>
+                </div>
+            </div>
+        </div>
 
 
     </div>
@@ -1911,41 +2001,91 @@
 
         const updateMissionPreview = () => {
 
-            const { preset, projectedAP, hpRisk, injuryChance, apCost } = getMissionSnapshot();
+            const { intensity, preset, projectedAP, hpRisk, injuryChance, apCost } = getMissionSnapshot();
 
             updateIntensitySliderVisual();
 
             const apEl = document.getElementById('mission-ap');
-
             const hpEl = document.getElementById('mission-hp');
-
             const injuryEl = document.getElementById('mission-injury');
-
             const labelEl = document.getElementById('mission-label');
-
             const buttonEl = document.getElementById('mission-button');
 
-
+            const modalTitle = document.getElementById('mission-modal-title');
+            const modalDesc = document.getElementById('mission-modal-desc');
+            const modalAP = document.getElementById('mission-modal-ap');
+            const modalCost = document.getElementById('mission-modal-cost');
+            const modalHP = document.getElementById('mission-modal-hp');
+            const modalInjury = document.getElementById('mission-modal-injury');
+            const modalIntensity = document.getElementById('mission-modal-intensity');
+            const modalShield = document.getElementById('mission-modal-shield');
 
             if (apEl) apEl.textContent = `${projectedAP} AP (cost ${apCost})`;
-
-            if (hpEl) hpEl.textContent = `-${hpRisk} HP`; 
-
+            if (hpEl) hpEl.textContent = `-${hpRisk} HP`;
             if (injuryEl) injuryEl.textContent = `${Math.round(injuryChance * 100)}%`;
-
             if (labelEl) labelEl.textContent = preset.label;
-
             if (buttonEl) buttonEl.disabled = !!petState && petState.hp <= 0;
+
+            if (modalTitle) modalTitle.textContent = preset.label;
+            if (modalDesc) modalDesc.textContent = preset.mood;
+            if (modalAP) modalAP.textContent = `${projectedAP} AP`;
+            if (modalCost) modalCost.textContent = `Costs ${apCost} AP upfront`;
+            if (modalHP) modalHP.textContent = `-${hpRisk} HP`;
+            if (modalInjury) modalInjury.textContent = `${Math.round(injuryChance * 100)}%`;
+            if (modalIntensity) modalIntensity.textContent = `Tier ${intensity} · ${preset.label}`;
+            if (modalShield) modalShield.textContent = document.getElementById('mission-shield')?.checked ? 'On (20 AP for safety)' : 'Off (save 20 AP)';
 
         };
 
 
 
-        window.handleMissionDeploy = async () => {
+        const toggleModalVisibility = (id, show) => {
+
+            const modal = document.getElementById(id);
+
+            if (!modal) return;
+
+            if (show) {
+
+                modal.classList.remove('hidden');
+
+            } else {
+
+                modal.classList.add('hidden');
+
+            }
+
+        };
+
+
+
+        window.openMissionModal = () => {
 
             if (!ensurePetLoaded()) return;
 
-            if (petState.hp <= 0) return logMessage('Pet is deceased. Cannot deploy missions.', 'error');
+            updateMissionPreview();
+
+            toggleModalVisibility('mission-modal', true);
+
+        };
+
+
+
+        window.closeMissionModal = () => toggleModalVisibility('mission-modal', false);
+
+
+
+        window.handleMissionDeploy = async () => {
+
+            if (!ensurePetLoaded()) return false;
+
+            if (petState.hp <= 0) {
+
+                logMessage('Pet is deceased. Cannot deploy missions.', 'error');
+
+                return false;
+
+            }
 
 
 
@@ -1953,13 +2093,25 @@
 
 
 
-            if (petState.ap < apCost) return logMessage(`Need ${apCost} AP to launch ${preset.label}.`, 'warning');
+            if (petState.ap < apCost) {
+
+                logMessage(`Need ${apCost} AP to launch ${preset.label}.`, 'warning');
+
+                return false;
+
+            }
 
 
 
             const hpAfter = petState.hp - hpRisk;
 
-            if (hpAfter <= 0) return logMessage('Mission too risky—HP would drop to zero.', 'warning');
+            if (hpAfter <= 0) {
+
+                logMessage('Mission too risky—HP would drop to zero.', 'warning');
+
+                return false;
+
+            }
 
 
 
@@ -2011,15 +2163,83 @@
 
             checkEvolution();
 
+            return true;
+
         };
+
+
+
+        window.confirmMissionDeploy = async () => {
+
+            const launched = await window.handleMissionDeploy();
+
+            if (launched) closeMissionModal();
+
+        };
+
+
+
+        const populateSyncModal = () => {
+
+            if (!petState) return;
+
+            const deltaMetrics = computeDeltaMetrics(readMetricsFromInputs());
+
+            const { apGained } = calculateAPFromMetrics(deltaMetrics);
+
+            const lastSync = petState.lastSyncTimestamp || 0;
+
+            const cooldownRemaining = lastSync ? Math.max(0, SYNC_COOLDOWN_MS - (Date.now() - lastSync)) : 0;
+
+            document.getElementById('sync-modal-ap').textContent = apGained.toLocaleString();
+
+            document.getElementById('sync-modal-likes').textContent = deltaMetrics.likes.toLocaleString();
+
+            document.getElementById('sync-modal-comments').textContent = deltaMetrics.comments.toLocaleString();
+
+            document.getElementById('sync-modal-reposts').textContent = deltaMetrics.reposts.toLocaleString();
+
+            document.getElementById('sync-modal-quotes').textContent = deltaMetrics.quotes.toLocaleString();
+
+            document.getElementById('sync-modal-impressions').textContent = deltaMetrics.impressions.toLocaleString();
+
+            document.getElementById('sync-modal-last').textContent = petState.lastSyncTimestamp ? new Date(petState.lastSyncTimestamp).toLocaleString() : 'No prior sync';
+
+            document.getElementById('sync-modal-cadence').textContent = cooldownRemaining > 0 ? 'Cooling down' : 'Ready now';
+
+            document.getElementById('sync-modal-cooldown').textContent = cooldownRemaining > 0 ? `Try again in ${formatDuration(cooldownRemaining)}` : 'No cooldown detected';
+
+        };
+
+
+
+        window.openSyncModal = () => {
+
+            if (!ensurePetLoaded()) return;
+
+            populateSyncModal();
+
+            toggleModalVisibility('sync-modal', true);
+
+        };
+
+
+
+        window.closeSyncModal = () => toggleModalVisibility('sync-modal', false);
 
 
 
         window.handleSyncActivity = async () => {
 
-            if (!ensurePetLoaded()) return;
+            if (!ensurePetLoaded()) return false;
 
-            if (petState.hp <= 0) return logMessage('Pet is deceased. Cannot perform actions.', 'error');
+            if (petState.hp <= 0) {
+
+                logMessage('Pet is deceased. Cannot perform actions.', 'error');
+
+                return false;
+
+            }
 
 
 
@@ -2037,7 +2257,7 @@
 
                 logMessage(`Sync is limited to once every 24 hours. Try again in ${formatDuration(cooldownRemaining)}.`, 'warning');
 
-                return;
+                return false;
 
             }
 
@@ -2100,6 +2320,18 @@
             logMessage(`Synced X Activity! Gained ${apGained} AP from the latest engagement delta.`, 'success');
 
             checkEvolution();
+
+            return true;
+
+        };
+
+
+
+        window.confirmSyncActivity = async () => {
+
+            const synced = await window.handleSyncActivity();
+
+            if (synced) closeSyncModal();
 
         };
 
